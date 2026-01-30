@@ -1,9 +1,51 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
-VisualStudioVersion = 17.14.36429.23 d17.14
+VisualStudioVersion = 17.14.36429.23
 MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NeuroNotes.Domain", "NeuroNotes.Domain\NeuroNotes.Domain.csproj", "{11E9A703-DD2C-482A-AF97-34B9749352FF}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NeuroNotes.Api", "NeuroNotes.Api\NeuroNotes.Api.csproj", "{6D55DAC0-B57C-40EA-AE90-3EAF767596BB}"
+	ProjectSection(ProjectDependencies) = postProject
+		{11E9A703-DD2C-482A-AF97-34B9749352FF} = {11E9A703-DD2C-482A-AF97-34B9749352FF}
+		{44FF94E2-E08E-40ED-AFF0-5E22BAE16B53} = {44FF94E2-E08E-40ED-AFF0-5E22BAE16B53}
+		{D3DA2680-65B6-408E-90CB-5AFA4998EBCE} = {D3DA2680-65B6-408E-90CB-5AFA4998EBCE}
+	EndProjectSection
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NeuroNotes.Infrastructure", "NeuroNotes.Infrastructure\NeuroNotes.Infrastructure.csproj", "{D3DA2680-65B6-408E-90CB-5AFA4998EBCE}"
+	ProjectSection(ProjectDependencies) = postProject
+		{11E9A703-DD2C-482A-AF97-34B9749352FF} = {11E9A703-DD2C-482A-AF97-34B9749352FF}
+		{44FF94E2-E08E-40ED-AFF0-5E22BAE16B53} = {44FF94E2-E08E-40ED-AFF0-5E22BAE16B53}
+	EndProjectSection
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NeuroNotes.Application", "NeuroNotes.Application\NeuroNotes.Application.csproj", "{44FF94E2-E08E-40ED-AFF0-5E22BAE16B53}"
+	ProjectSection(ProjectDependencies) = postProject
+		{11E9A703-DD2C-482A-AF97-34B9749352FF} = {11E9A703-DD2C-482A-AF97-34B9749352FF}
+	EndProjectSection
+EndProject
 Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{11E9A703-DD2C-482A-AF97-34B9749352FF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{11E9A703-DD2C-482A-AF97-34B9749352FF}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{11E9A703-DD2C-482A-AF97-34B9749352FF}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{11E9A703-DD2C-482A-AF97-34B9749352FF}.Release|Any CPU.Build.0 = Release|Any CPU
+		{6D55DAC0-B57C-40EA-AE90-3EAF767596BB}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{6D55DAC0-B57C-40EA-AE90-3EAF767596BB}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{6D55DAC0-B57C-40EA-AE90-3EAF767596BB}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{6D55DAC0-B57C-40EA-AE90-3EAF767596BB}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D3DA2680-65B6-408E-90CB-5AFA4998EBCE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D3DA2680-65B6-408E-90CB-5AFA4998EBCE}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D3DA2680-65B6-408E-90CB-5AFA4998EBCE}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D3DA2680-65B6-408E-90CB-5AFA4998EBCE}.Release|Any CPU.Build.0 = Release|Any CPU
+		{44FF94E2-E08E-40ED-AFF0-5E22BAE16B53}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{44FF94E2-E08E-40ED-AFF0-5E22BAE16B53}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{44FF94E2-E08E-40ED-AFF0-5E22BAE16B53}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{44FF94E2-E08E-40ED-AFF0-5E22BAE16B53}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
 	EndGlobalSection

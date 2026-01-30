@@ -1,0 +1,162 @@
+services:
+  # ==========================================
+  # Service: Neuro Notes API
+  # ==========================================
+  neuro-notes-api:
+    image: neuro-notes-api
+    container_name: neuro-notes-api
+    build:
+      context: .
+      dockerfile: NeuroNotes.Api/Dockerfile
+    restart: unless-stopped
+    ports:
+      - "${API_PORT_EXTERNAL}:${API_PORT_INTERNAL}"
+    networks:
+      - network
+    volumes:
+      - ${VOSK_LOCAL_MODELS_HOST_PATH}:${VOSK_LOCAL_MODELS_PATH}
+    environment:
+      - ASPNETCORE_ENVIRONMENT=${ASPNETCORE_ENVIRONMENT}
+      - AllowedCorsOrigins=${CORS_ALLOWED_ORIGINS}
+      
+      # === App Configuration ===
+      - AppDefaults__DefaultInterfaceLanguage=${APP_DEFAULT_INTERFACE_LANGUAGE}
+
+      # === Database Connection ===
+      - ConnectionStrings__DefaultConnection=Host=postgres;Port=${POSTGRES_PORT};Database=${POSTGRES_DB};Username=${POSTGRES_USER};Password=${POSTGRES_PASSWORD};
+
+      # === JWT Configuration ===
+      - JwtSettings__Issuer=${JWT_ISSUER}
+      - JwtSettings__Audience=${JWT_AUDIENCE}
+      - JwtSettings__AccessTokenSecret=${JWT_ACCESS_SECRET}
+      - JwtSettings__AccessTokenExpiryMinutes=${JWT_ACCESS_EXPIRY_MINUTES}
+      - JwtSettings__RefreshTokenSecret=${JWT_REFRESH_SECRET}
+      - JwtSettings__RefreshTokenExpiryDays=${JWT_REFRESH_EXPIRY_DAYS}
+
+      # === MinIO Configuration ===
+      - MinioSettings__Endpoint=${MINIO_HOST}:${MINIO_API_PORT}
+      - MinioSettings__AccessKey=${MINIO_ROOT_USER}
+      - MinioSettings__SecretKey=${MINIO_ROOT_PASSWORD}
+      - MinioSettings__BucketName=${MINIO_BUCKET_NAME}
+      - MinioSettings__WithSSL=${MINIO_WITH_SSL}
+
+      # === AI Configuration ===
+      - AISettings__DefaultAIOperationLanguage=${AI_DEFAULT_OPERATION_LANGUAGE}
+      - AISettings__DefaultTranscriptionProvider=${AI_DEFAULT_TRANSCRIPTION_PROVIDER}
+      - AISettings__DefaultChatProvider=${AI_DEFAULT_CHAT_PROVIDER}
+      - AISettings__DefaultStructureProvider=${AI_DEFAULT_STRUCTURE_PROVIDER}
+      - AISettings__DefaultSummaryProvider=${AI_DEFAULT_SUMMARY_PROVIDER}
+      - AISettings__DefaultChatTemperature=${AI_DEFAULT_CHAT_TEMPERATURE}
+      - AISettings__DefaultStructureTemperature=${AI_DEFAULT_STRUCTURE_TEMPERATURE}
+      - AISettings__DefaultSummaryTemperature=${AI_DEFAULT_SUMMARY_TEMPERATURE}
+
+      - AISettings__Gemini__BaseUrl=${GEMINI_BASE_URL}
+      - AISettings__Gemini__StructureModel=${GEMINI_STRUCTURE_MODEL}
+      - AISettings__Gemini__SummaryModel=${GEMINI_SUMMARY_MODEL}
+      - AISettings__Gemini__TranscriptionModel=${GEMINI_TRANSCRIPTION_MODEL}
+      - AISettings__Gemini__ChatModel=${GEMINI_CHAT_MODEL}
+
+      - AISettings__Mistral__BaseUrl=${MISTRAL_BASE_URL}
+      - AISettings__Mistral__StructureModel=${MISTRAL_STRUCTURE_MODEL}
+      - AISettings__Mistral__SummaryModel=${MISTRAL_SUMMARY_MODEL}
+      - AISettings__Mistral__TranscriptionModel=${MISTRAL_TRANSCRIPTION_MODEL}
+      - AISettings__Mistral__ChatModel=${MISTRAL_CHAT_MODEL}
+
+      - AISettings__OllamaLocal__BaseUrl=${OLLAMA_LOCAL_BASE_URL}
+      - AISettings__OllamaLocal__StructureModel=${OLLAMA_LOCAL_STRUCTURE_MODEL}
+      - AISettings__OllamaLocal__SummaryModel=${OLLAMA_LOCAL_SUMMARY_MODEL}
+      - AISettings__OllamaLocal__ChatModel=${OLLAMA_LOCAL_CHAT_MODEL}  
+
+      - AISettings__VoskLocal__ModelsPath=${VOSK_LOCAL_MODELS_PATH}
+      - AISettings__VoskLocal__LanguageMap__ru=${VOSK_LOCAL_MODEL_RU}
+      - AISettings__VoskLocal__LanguageMap__en=${VOSK_LOCAL_MODEL_EN}
+
+      - EmbeddingSettings__DefaultEmbeddingProvider=${EMBEDDING_DEFAULT_PROVIDER}
+      - EmbeddingSettings__GemmaLocal__BaseUrl=${EMBEDDING_BASE_URL}
+      - EmbeddingSettings__GemmaLocal__EmbeddingModel=${EMBEDDING_MODEL}
+      - EmbeddingSettings__GemmaLocal__Dimensions=${EMBEDDING_DIMENSIONS}
+      - EmbeddingSettings__GemmaLocal__MaxCosineDistance=${EMBEDDING_MAX_COSINE_DISTANCE}
+      - EmbeddingSettings__GemmaLocal__SearchResultLimit=${EMBEDDING_SEARCH_RESULT_LIMIT}
+
+      # === Hangfire Configuration ===
+      - Hangfire__User=${HANGFIRE_USER}
+      - Hangfire__Pass=${HANGFIRE_PASSWORD}
+
+    depends_on:
+      postgres:
+        condition: service_healthy
+      minio:
+        condition: service_healthy
+
+  # ==========================================
+  # Service: PostgreSQL Database
+  # ==========================================
+  postgres:
+    image: pgvector/pgvector:pg17
+    container_name: neuro-notes-postgres
+    restart: unless-stopped
+    networks:
+      - network
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    ports:
+      - "${POSTGRES_PORT}:${POSTGRES_PORT}"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+# ==========================================
+  # Service: MinIO Object Storage
+  # ==========================================
+  minio:
+    image: minio/minio
+    container_name: neuro-notes-minio
+    restart: unless-stopped
+    networks:
+      - network
+    command: server /data --console-address ":${MINIO_CONSOLE_PORT}"
+    environment:
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD}
+    ports:
+      - "${MINIO_API_PORT}:${MINIO_API_PORT}"         
+      - "${MINIO_CONSOLE_PORT}:${MINIO_CONSOLE_PORT}" 
+    volumes:
+      - minio_data:/data
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:${MINIO_API_PORT}/minio/health/live"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+
+# ==========================================
+  # Service: Ollama 
+  # ==========================================
+  ollama:
+    image: ollama/ollama:latest
+    container_name: neuro-notes-ollama
+    restart: unless-stopped
+    ports:
+      - "11434:11434" 
+    volumes:
+      - ollama_models:/root/.ollama 
+    networks:
+      - network
+
+# ==========================================
+# Volumes & Networks
+# ==========================================
+volumes:
+  postgres_data:
+  minio_data:
+  ollama_models:
+
+networks:
+  network:
+    driver: bridge
