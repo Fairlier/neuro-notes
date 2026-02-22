@@ -282,12 +282,17 @@ namespace NeuroNotes.Infrastructure.Persistence.Migrations
                     b.Property<Guid>("NoteId")
                         .HasColumnType("uuid");
 
+                    b.Property<string>("SourceType")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)");
+
                     b.Property<DateTime?>("UpdatedAt")
                         .HasColumnType("timestamp with time zone");
 
                     b.HasKey("Id");
 
-                    b.HasIndex("NoteId");
+                    b.HasIndex("NoteId", "SourceType");
 
                     b.ToTable("NoteChunks");
                 });

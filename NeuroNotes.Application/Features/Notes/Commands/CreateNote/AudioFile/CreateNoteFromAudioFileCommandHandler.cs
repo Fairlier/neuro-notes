@@ -2,6 +2,7 @@
 using MediatR;
 using Microsoft.Extensions.Logging;
 using NeuroNotes.Application.Common.Constants;
+using NeuroNotes.Application.Interfaces.AI.Embeddings;
 using NeuroNotes.Application.Interfaces.BackgroundJobs;
 using NeuroNotes.Application.Interfaces.Files;
 using NeuroNotes.Application.Interfaces.Identity;
@@ -18,6 +19,7 @@ namespace NeuroNotes.Application.Features.Notes.Commands.CreateNote.AudioFile
         private readonly IFileStorageService _fileStorage;
         private readonly IBackgroundJobService _backgroundJobService;
         private readonly IFileSignatureValidator _fileValidator;
+        private readonly INoteEmbeddingGenerator _embeddingGenerator;
         private readonly ILogger<CreateNoteFromAudioFileCommandHandler> _logger; 
 
         public CreateNoteFromAudioFileCommandHandler(
@@ -26,6 +28,7 @@ namespace NeuroNotes.Application.Features.Notes.Commands.CreateNote.AudioFile
             IFileStorageService fileStorage,
             IBackgroundJobService backgroundJobService,
             IFileSignatureValidator fileValidator,
+            INoteEmbeddingGenerator embeddingGenerator,
             ILogger<CreateNoteFromAudioFileCommandHandler> logger)
         {
             _context = context;
@@ -33,6 +36,7 @@ namespace NeuroNotes.Application.Features.Notes.Commands.CreateNote.AudioFile
             _fileStorage = fileStorage;
             _backgroundJobService = backgroundJobService;
             _fileValidator = fileValidator;
+            _embeddingGenerator = embeddingGenerator;
             _logger = logger;
         }
 
@@ -83,6 +87,10 @@ namespace NeuroNotes.Application.Features.Notes.Commands.CreateNote.AudioFile
 
             await _context.Notes.AddAsync(note, cancellationToken);
             await _context.SaveChangesAsync(cancellationToken);
+
+            _logger.LogInformation("Generating Title embedding for Note {NoteId}.", note.Id);
+            await _embeddingGenerator.UpdateEmbeddingsForSourceAsync(
+                note, NoteChunkSourceType.Title, cancellationToken);
 
             _logger.LogInformation(
                 "Note created successfully in DB. Id: {NoteId}", 

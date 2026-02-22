@@ -9,15 +9,23 @@ namespace NeuroNotes.Infrastructure.Persistence.EntityTypeConfigurations
         public void Configure(EntityTypeBuilder<NoteChunk> builder)
         {
             builder.HasKey(x => x.Id);
+
+            builder.Property(x => x.SourceType)
+                .IsRequired()
+                .HasConversion<string>()
+                .HasMaxLength(20);
+
             builder.Property(x => x.Content).IsRequired();
 
             builder.Property(x => x.Embedding)
-                .HasColumnType("vector"); // TODO Подумать
+                .HasColumnType("vector");
 
             builder.HasOne(x => x.Note)
                 .WithMany()
                 .HasForeignKey(x => x.NoteId)
                 .OnDelete(DeleteBehavior.Cascade);
+
+            builder.HasIndex(x => new { x.NoteId, x.SourceType });
         }
     }
 }

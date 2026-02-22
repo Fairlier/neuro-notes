@@ -301,6 +301,7 @@ namespace NeuroNotes.Infrastructure.Persistence.Migrations
                 {
                     Id = table.Column<Guid>(type: "uuid", nullable: false),
                     NoteId = table.Column<Guid>(type: "uuid", nullable: false),
+                    SourceType = table.Column<string>(type: "character varying(20)", maxLength: 20, nullable: false),
                     Content = table.Column<string>(type: "text", nullable: false),
                     Embedding = table.Column<Vector>(type: "vector", nullable: true),
                     CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
@@ -360,9 +361,9 @@ namespace NeuroNotes.Infrastructure.Persistence.Migrations
                 column: "ChatSessionId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_NoteChunks_NoteId",
+                name: "IX_NoteChunks_NoteId_SourceType",
                 table: "NoteChunks",
-                column: "NoteId");
+                columns: new[] { "NoteId", "SourceType" });
 
             migrationBuilder.CreateIndex(
                 name: "IX_RefreshTokens_Token",

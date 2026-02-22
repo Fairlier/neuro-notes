@@ -4,10 +4,12 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using NeuroNotes.Application.Common.Exceptions;
 using NeuroNotes.Application.Common.Options;
+using NeuroNotes.Application.Interfaces.AI.Embeddings;
 using NeuroNotes.Application.Interfaces.AI.Prompting;
 using NeuroNotes.Application.Interfaces.AI.Providers;
 using NeuroNotes.Application.Interfaces.Persistence;
 using NeuroNotes.Domain.Entities;
+using NeuroNotes.Domain.Enums;
 
 namespace NeuroNotes.Application.Features.Notes.Commands.SummarizeNote
 {
@@ -16,19 +18,22 @@ namespace NeuroNotes.Application.Features.Notes.Commands.SummarizeNote
         private readonly IApplicationDbContext _context;
         private readonly IAIProviderFactory _aiFactory;
         private readonly IPromptService _promptService;
+        private readonly INoteEmbeddingGenerator _embeddingGenerator;
         private readonly AIOptions _aiOptions;
         private readonly ILogger<SummarizeNoteCommandHandler> _logger;
 
         public SummarizeNoteCommandHandler(
-            IApplicationDbContext context,
-            IAIProviderFactory aiFactory,
-            IPromptService promptService,
-            IOptions<AIOptions> aiOptions,
-            ILogger<SummarizeNoteCommandHandler> logger)
+           IApplicationDbContext context,
+           IAIProviderFactory aiFactory,
+           IPromptService promptService,
+           INoteEmbeddingGenerator embeddingGenerator,
+           IOptions<AIOptions> aiOptions,
+           ILogger<SummarizeNoteCommandHandler> logger)
         {
             _context = context;
             _aiFactory = aiFactory;
             _promptService = promptService;
+            _embeddingGenerator = embeddingGenerator;
             _aiOptions = aiOptions.Value;
             _logger = logger;
         }
@@ -88,6 +93,10 @@ namespace NeuroNotes.Application.Features.Notes.Commands.SummarizeNote
 
             note.SetSummaryText(summaryText);
             await _context.SaveChangesAsync(cancellationToken);
+
+            _logger.LogInformation("Updating embeddings for SummaryText of Note {NoteId}.", note.Id);
+            await _embeddingGenerator.UpdateEmbeddingsForSourceAsync(
+                note, NoteChunkSourceType.SummaryText, cancellationToken);
 
             _logger.LogInformation(
                 "Note {NoteId} summarized successfully.", 

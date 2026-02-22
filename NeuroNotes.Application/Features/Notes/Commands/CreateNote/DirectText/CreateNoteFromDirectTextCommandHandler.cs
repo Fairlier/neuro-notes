@@ -1,6 +1,6 @@
 ﻿using MediatR;
 using Microsoft.Extensions.Logging;
-using NeuroNotes.Application.Interfaces.BackgroundJobs;
+using NeuroNotes.Application.Interfaces.AI.Embeddings;
 using NeuroNotes.Application.Interfaces.Identity;
 using NeuroNotes.Application.Interfaces.Persistence;
 using NeuroNotes.Domain.Entities;
@@ -12,15 +12,18 @@ namespace NeuroNotes.Application.Features.Notes.Commands.CreateNote.DirectText
     {
         private readonly IApplicationDbContext _context;
         private readonly ICurrentUserService _currentUserService;
-        private readonly ILogger<CreateNoteFromDirectTextCommandHandler> _logger; 
+        private readonly INoteEmbeddingGenerator _embeddingGenerator;
+        private readonly ILogger<CreateNoteFromDirectTextCommandHandler> _logger;
 
         public CreateNoteFromDirectTextCommandHandler(
             IApplicationDbContext context,
             ICurrentUserService currentUserService,
+            INoteEmbeddingGenerator embeddingGenerator,
             ILogger<CreateNoteFromDirectTextCommandHandler> logger)
         {
             _context = context;
             _currentUserService = currentUserService;
+            _embeddingGenerator = embeddingGenerator;
             _logger = logger;
         }
 
@@ -44,6 +47,9 @@ namespace NeuroNotes.Application.Features.Notes.Commands.CreateNote.DirectText
 
             await _context.Notes.AddAsync(note, cancellationToken);
             await _context.SaveChangesAsync(cancellationToken);
+
+            _logger.LogInformation("Generating embeddings for Note {NoteId}.", note.Id);
+            await _embeddingGenerator.GenerateAndSaveEmbeddingsAsync(note, cancellationToken);
 
             _logger.LogInformation(
                 "Note created successfully. Id: {NoteId}", 

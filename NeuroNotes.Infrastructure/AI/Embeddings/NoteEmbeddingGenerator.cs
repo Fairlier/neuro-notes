@@ -14,6 +14,9 @@ namespace NeuroNotes.Infrastructure.AI.Embeddings
         private readonly IEmbeddingModelFactory _embeddingFactory;
         private readonly ILogger<NoteEmbeddingGenerator> _logger;
 
+        private const int ChunkSize = 1000;
+        private const int ChunkOverlap = 200;
+
         private readonly string[] _separators = { "\n\n", "\n", ". ", "? ", "! ", " ", "" };
 
         public NoteEmbeddingGenerator(
@@ -28,71 +31,58 @@ namespace NeuroNotes.Infrastructure.AI.Embeddings
 
         public async Task GenerateAndSaveEmbeddingsAsync(Note note, CancellationToken cancellationToken)
         {
-            _logger.LogInformation(
-                "Starting embedding generation for Note {NoteId}.", 
-                note.Id);
+            _logger.LogInformation("Starting full embedding generation for Note {NoteId}.", note.Id);
 
             try
             {
-                var embeddingService = _embeddingFactory.Create();
-
                 await _context.NoteChunks
                     .Where(c => c.NoteId == note.Id)
                     .ExecuteDeleteAsync(cancellationToken);
 
-                var textToIndex = !string.IsNullOrWhiteSpace(note.StructuredText)
-                    ? note.StructuredText
-                    : note.RawText;
+                var allChunks = new List<NoteChunk>();
 
-                if (string.IsNullOrWhiteSpace(textToIndex))
+                if (!string.IsNullOrWhiteSpace(note.Title))
                 {
-                    _logger.LogWarning(
-                        "Skipping embedding generation: No text available for Note {NoteId}.", 
-                        note.Id);
-                    return;
+                    var titleChunks = await GenerateChunksForSourceAsync(
+                        note, NoteChunkSourceType.Title, note.Title, cancellationToken);
+                    allChunks.AddRange(titleChunks);
                 }
 
-                var chunks = SplitTextRecursively(textToIndex, 1000, 200);
-
-                _logger.LogInformation(
-                    "Text split into {Count} chunks for Note {NoteId}.", 
-                    chunks.Count, note.Id);
-
-                if (chunks.Count == 0) return;
-
-                var safeTitle = (note.Title ?? "Untitled").Replace("\n", " ").Trim();
-
-                var payloadForEmbedding = chunks.Select(chunkText =>
-                    $"Title: {safeTitle}\nContent: {chunkText}"
-                ).ToList();
-
-                _logger.LogInformation(
-                    "Sending batch request to AI for {Count} chunks...", 
-                    chunks.Count);
-
-                var vectors = await embeddingService.GenerateEmbeddingsBatchAsync(
-                    payloadForEmbedding,
-                    EmbeddingType.Document,
-                    cancellationToken);
-
-                if (vectors.Count != chunks.Count)
+                if (!string.IsNullOrWhiteSpace(note.RawText))
                 {
-                    throw new InvalidOperationException(
-                        $"Mismatch: Sent {chunks.Count} chunks, but AI returned {vectors.Count} vectors.");
+                    var rawChunks = await GenerateChunksForSourceAsync(
+                        note, NoteChunkSourceType.RawText, note.RawText, cancellationToken);
+                    allChunks.AddRange(rawChunks);
                 }
 
-                var newChunks = new List<NoteChunk>(chunks.Count);
-                for (int i = 0; i < chunks.Count; i++)
+                if (!string.IsNullOrWhiteSpace(note.StructuredText))
                 {
-                    newChunks.Add(new NoteChunk(note.Id, chunks[i], vectors[i]));
+                    var structuredChunks = await GenerateChunksForSourceAsync(
+                        note, NoteChunkSourceType.StructuredText, note.StructuredText, cancellationToken);
+                    allChunks.AddRange(structuredChunks);
                 }
 
-                await _context.NoteChunks.AddRangeAsync(newChunks, cancellationToken);
-                await _context.SaveChangesAsync(cancellationToken);
+                if (!string.IsNullOrWhiteSpace(note.SummaryText))
+                {
+                    var summaryChunks = await GenerateChunksForSourceAsync(
+                        note, NoteChunkSourceType.SummaryText, note.SummaryText, cancellationToken);
+                    allChunks.AddRange(summaryChunks);
+                }
+
+                if (allChunks.Count > 0)
+                {
+                    await _context.NoteChunks.AddRangeAsync(allChunks, cancellationToken);
+                    await _context.SaveChangesAsync(cancellationToken);
+                }
 
                 _logger.LogInformation(
-                    "Successfully saved {Count} embeddings for Note {NoteId}.", 
-                    newChunks.Count, note.Id);
+                    "Successfully saved {Count} total embeddings for Note {NoteId} (Title: {TitleCount}, Raw: {RawCount}, Structured: {StructuredCount}, Summary: {SummaryCount}).",
+                    allChunks.Count,
+                    note.Id,
+                    allChunks.Count(c => c.SourceType == NoteChunkSourceType.Title),
+                    allChunks.Count(c => c.SourceType == NoteChunkSourceType.RawText),
+                    allChunks.Count(c => c.SourceType == NoteChunkSourceType.StructuredText),
+                    allChunks.Count(c => c.SourceType == NoteChunkSourceType.SummaryText));
             }
             catch (Exception ex)
             {
@@ -101,12 +91,120 @@ namespace NeuroNotes.Infrastructure.AI.Embeddings
             }
         }
 
+        public async Task UpdateEmbeddingsForSourceAsync(
+            Note note,
+            NoteChunkSourceType sourceType,
+            CancellationToken cancellationToken)
+        {
+            _logger.LogInformation(
+                "Updating embeddings for Note {NoteId}, Source: {SourceType}.",
+                note.Id, sourceType);
+
+            try
+            {
+                var deletedCount = await _context.NoteChunks
+                    .Where(c => c.NoteId == note.Id && c.SourceType == sourceType)
+                    .ExecuteDeleteAsync(cancellationToken);
+
+                _logger.LogDebug("Deleted {Count} old chunks for Source {SourceType}.", deletedCount, sourceType);
+
+                var text = GetTextBySourceType(note, sourceType);
+
+                if (string.IsNullOrWhiteSpace(text))
+                {
+                    _logger.LogInformation(
+                        "No text for source {SourceType} in Note {NoteId}. Chunks cleared.",
+                        sourceType, note.Id);
+                    return;
+                }
+
+                var chunks = await GenerateChunksForSourceAsync(note, sourceType, text, cancellationToken);
+
+                if (chunks.Count > 0)
+                {
+                    await _context.NoteChunks.AddRangeAsync(chunks, cancellationToken);
+                    await _context.SaveChangesAsync(cancellationToken);
+                }
+
+                _logger.LogInformation(
+                    "Updated {Count} embeddings for Note {NoteId}, Source: {SourceType}.",
+                    chunks.Count, note.Id, sourceType);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex,
+                    "Failed to update embeddings for Note {NoteId}, Source: {SourceType}.",
+                    note.Id, sourceType);
+                throw;
+            }
+        }
+
+        private static string? GetTextBySourceType(Note note, NoteChunkSourceType sourceType)
+        {
+            return sourceType switch
+            {
+                NoteChunkSourceType.Title => note.Title,
+                NoteChunkSourceType.RawText => note.RawText,
+                NoteChunkSourceType.StructuredText => note.StructuredText,
+                NoteChunkSourceType.SummaryText => note.SummaryText,
+                _ => null
+            };
+        }
+
+        private async Task<List<NoteChunk>> GenerateChunksForSourceAsync(
+            Note note,
+            NoteChunkSourceType sourceType,
+            string text,
+            CancellationToken cancellationToken)
+        {
+            var embeddingService = _embeddingFactory.Create();
+
+            List<string> textChunks;
+            if (sourceType == NoteChunkSourceType.Title)
+            {
+                textChunks = new List<string> { text };
+            }
+            else
+            {
+                textChunks = SplitTextRecursively(text, ChunkSize, ChunkOverlap);
+            }
+
+            if (textChunks.Count == 0)
+                return new List<NoteChunk>();
+
+            _logger.LogDebug(
+                "Source {SourceType}: Split into {Count} chunks for Note {NoteId}.",
+                sourceType, textChunks.Count, note.Id);
+
+            var safeTitle = (note.Title ?? "Untitled").Replace("\n", " ").Trim();
+
+            var payloadForEmbedding = textChunks.Select(chunkText =>
+                $"[{sourceType}] Note: {safeTitle}\n{chunkText}"
+            ).ToList();
+
+            var vectors = await embeddingService.GenerateEmbeddingsBatchAsync(
+                payloadForEmbedding,
+                EmbeddingType.Document,
+                cancellationToken);
+
+            if (vectors.Count != textChunks.Count)
+            {
+                throw new InvalidOperationException(
+                    $"Embedding mismatch: Sent {textChunks.Count} chunks, received {vectors.Count} vectors.");
+            }
+
+            var noteChunks = new List<NoteChunk>(textChunks.Count);
+            for (int i = 0; i < textChunks.Count; i++)
+            {
+                noteChunks.Add(new NoteChunk(note.Id, sourceType, textChunks[i], vectors[i]));
+            }
+
+            return noteChunks;
+        }
+
         private List<string> SplitTextRecursively(string text, int chunkSize, int chunkOverlap)
         {
-            var finalChunks = new List<string>();
-
             var splits = SplitInternal(text, _separators, chunkSize);
-
             return MergeSplits(splits, chunkSize, chunkOverlap);
         }
 
@@ -155,8 +253,7 @@ namespace NeuroNotes.Infrastructure.AI.Embeddings
         {
             var docs = new List<string>();
             var currentDoc = new StringBuilder();
-            var currentSplits = new List<string>(); 
-
+            var currentSplits = new List<string>();
             const string separator = " ";
 
             foreach (var split in splits)
@@ -180,7 +277,6 @@ namespace NeuroNotes.Infrastructure.AI.Embeddings
 
                     currentDoc.Clear();
                     currentDoc.Append(overlapBuffer);
-
                     currentSplits.RemoveAll(x => !overlapBuffer.ToString().Contains(x));
                 }
 

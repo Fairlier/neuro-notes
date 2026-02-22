@@ -44,10 +44,11 @@ namespace NeuroNotes.Infrastructure.AI.Context
                 EmbeddingType.Query,
                 cancellationToken);
 
-            int databaseFetchLimit = (int)(limit * 1.5);
+            int databaseFetchLimit = limit * 3;
 
             var searchResults = await _context.NoteChunks
                 .AsNoTracking()
+                .Include(c => c.Note)
                 .Where(c => c.Note!.UserId == userId)
                 .Select(c => new
                 {
@@ -71,23 +72,27 @@ namespace NeuroNotes.Infrastructure.AI.Context
                 return string.Empty;
             }
 
-            var sb = new StringBuilder();
+            var uniqueNoteResults = searchResults
+                .GroupBy(r => r.Chunk.NoteId)
+                .Select(g => g.OrderBy(x => x.Distance).First())
+                .OrderBy(x => x.Distance)
+                .Take(limit)
+                .ToList();
 
+            var sb = new StringBuilder();
             sb.AppendLine("<documents>");
             sb.AppendLine("Use the following context snippets to answer the user question.");
-
-            var finalResults = searchResults.Take(limit).ToList();
-
-            foreach (var item in finalResults)
+            foreach (var item in uniqueNoteResults)
             {
-                var safeTitle = (item.Chunk.Note?.Title ?? "Untitled").Replace("\n", " ").Replace("\r", "");
+                var note = item.Chunk.Note;
+                var safeTitle = (note?.Title ?? "Untitled").Replace("\n", " ").Replace("\r", "");
 
                 _logger.LogDebug(
-                    "RAG Include: '{Title}' (Dist: {Dist:F4})", 
-                    safeTitle, item.Distance);
+                    "RAG Include: '{Title}' [{Source}] (Distance: {Dist:F4})",
+                    safeTitle, item.Chunk.SourceType, item.Distance);
 
                 sb.AppendLine($"""
-                    <document source="{safeTitle}" date="{item.Chunk.Note?.CreatedAt:yyyy-MM-dd}">
+                    <document source="{safeTitle}" type="{item.Chunk.SourceType}" date="{note?.CreatedAt:yyyy-MM-dd}">
                     {item.Chunk.Content}
                     </document>
                     """);
@@ -105,7 +110,6 @@ namespace NeuroNotes.Infrastructure.AI.Context
                     _options.GemmaLocal.SearchResultLimit,
                     _options.GemmaLocal.MaxCosineDistance
                 ),
-
                 _ => (5, 0.7)
             };
         }

@@ -8,6 +8,7 @@ namespace NeuroNotes.Infrastructure.AI.Context
     public class AIContextService : IAIContextService
     {
         private readonly ILogger<AIContextService> _logger;
+
         private const int AvgCharsPerToken = 4;
         private const int MaxRawTextLength = 50000;
 

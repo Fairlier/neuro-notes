@@ -98,11 +98,9 @@ namespace NeuroNotes.Application.Features.Notes.Commands.StructureNote
 
             await _context.SaveChangesAsync(cancellationToken);
 
-            _logger.LogInformation(
-                "Starts generating embeddings for Note {NoteId}.", 
-                note.Id);
-
-            await _embeddingGenerator.GenerateAndSaveEmbeddingsAsync(note, cancellationToken);
+            _logger.LogInformation("Updating embeddings for StructuredText of Note {NoteId}.", note.Id);
+            await _embeddingGenerator.UpdateEmbeddingsForSourceAsync(
+                note, NoteChunkSourceType.StructuredText, cancellationToken);
 
             _logger.LogInformation(
                 "Note {NoteId} structured and embedded successfully.", 

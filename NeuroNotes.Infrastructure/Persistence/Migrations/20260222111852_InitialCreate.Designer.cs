@@ -13,7 +13,7 @@ using Pgvector;
 namespace NeuroNotes.Infrastructure.Persistence.Migrations
 {
     [DbContext(typeof(NeuroNotesDbContext))]
-    [Migration("20260221154333_InitialCreate")]
+    [Migration("20260222111852_InitialCreate")]
     partial class InitialCreate
     {
         /// <inheritdoc />
@@ -285,12 +285,17 @@ namespace NeuroNotes.Infrastructure.Persistence.Migrations
                     b.Property<Guid>("NoteId")
                         .HasColumnType("uuid");
 
+                    b.Property<string>("SourceType")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)");
+
                     b.Property<DateTime?>("UpdatedAt")
                         .HasColumnType("timestamp with time zone");
 
                     b.HasKey("Id");
 
-                    b.HasIndex("NoteId");
+                    b.HasIndex("NoteId", "SourceType");
 
                     b.ToTable("NoteChunks");
                 });
