@@ -45,24 +45,6 @@ namespace NeuroNotes.Infrastructure.AI.Providers
             };
         }
 
-        public IChatService GetChatService()
-            => GetChatService(_options.DefaultChatProvider);
-
-        public IChatService GetChatService(ChatProviderType provider)
-        {
-            _logger.LogDebug(
-                "Resolving Chat Service for provider: {Provider}", 
-                provider);
-
-            return provider switch
-            {
-                ChatProviderType.Gemini => _serviceProvider.GetRequiredService<GeminiChatService>(),
-                ChatProviderType.OllamaLocal => _serviceProvider.GetRequiredService<OllamaLocalChatService>(),
-                ChatProviderType.Mistral => _serviceProvider.GetRequiredService<MistralChatService>(),
-                _ => throw CreateNotSupportedException("Chat", provider.ToString())
-            };
-        }
-
         public IStructureService GetStructureService()
             => GetStructureService(_options.DefaultStructureProvider);
 
@@ -97,6 +79,38 @@ namespace NeuroNotes.Infrastructure.AI.Providers
                 SummaryProviderType.OllamaLocal => _serviceProvider.GetRequiredService<OllamaLocalSummaryService>(),
                 SummaryProviderType.Mistral => _serviceProvider.GetRequiredService<MistralSummaryService>(),
                 _ => throw CreateNotSupportedException("Summary", provider.ToString())
+            };
+        }
+
+        public IChatService GetGlobalChatService()
+            => GetGlobalChatService(_options.DefaultGlobalChatProvider);
+
+        public IChatService GetGlobalChatService(ChatProviderType provider)
+        {
+            _logger.LogDebug("Resolving Global Chat Service for provider: {Provider}", provider);
+
+            return provider switch
+            {
+                ChatProviderType.Gemini => _serviceProvider.GetRequiredService<GeminiChatService>(),
+                ChatProviderType.OllamaLocal => _serviceProvider.GetRequiredService<OllamaLocalChatService>(),
+                ChatProviderType.Mistral => _serviceProvider.GetRequiredService<MistralChatService>(),
+                _ => throw CreateNotSupportedException("Global Chat", provider.ToString())
+            };
+        }
+
+        public IChatService GetNoteChatService()
+            => GetNoteChatService(_options.DefaultNoteChatProvider);
+
+        public IChatService GetNoteChatService(ChatProviderType provider)
+        {
+            _logger.LogDebug("Resolving Note Chat Service for provider: {Provider}", provider);
+
+            return provider switch
+            {
+                ChatProviderType.Gemini => _serviceProvider.GetRequiredService<GeminiChatService>(),
+                ChatProviderType.OllamaLocal => _serviceProvider.GetRequiredService<OllamaLocalChatService>(),
+                ChatProviderType.Mistral => _serviceProvider.GetRequiredService<MistralChatService>(),
+                _ => throw CreateNotSupportedException("Note Chat", provider.ToString())
             };
         }
 

@@ -59,12 +59,14 @@ namespace NeuroNotes.Application.Features.Users.Queries.GetUserAIProfile
                 TranscriptionProvider = ResolveEnum(userAIProfile?.TranscriptionProvider, _aiDefaults.DefaultTranscriptionProvider),
                 StructureProvider = ResolveEnum(userAIProfile?.StructureProvider, _aiDefaults.DefaultStructureProvider),
                 SummaryProvider = ResolveEnum(userAIProfile?.SummaryProvider, _aiDefaults.DefaultSummaryProvider),
-                ChatProvider = ResolveEnum(userAIProfile?.ChatProvider, _aiDefaults.DefaultChatProvider),
+                GlobalChatProvider = ResolveEnum(userAIProfile?.GlobalChatProvider, _aiDefaults.DefaultGlobalChatProvider),
+                NoteChatProvider = ResolveEnum(userAIProfile?.NoteChatProvider, _aiDefaults.DefaultNoteChatProvider),
 
-                CustomTranscriptionPrompt = userAIProfile?.CustomTranscriptionPrompt,
-                CustomStructurePrompt = userAIProfile?.CustomStructurePrompt,
-                CustomSummaryPrompt = userAIProfile?.CustomSummaryPrompt,
-                CustomChatPrompt = userAIProfile?.CustomChatPrompt,
+                Transcription = MapOperationSettings(userAIProfile?.Transcription),
+                Structuring = MapOperationSettings(userAIProfile?.Structuring),
+                Summarization = MapOperationSettings(userAIProfile?.Summarization),
+                GlobalChat = MapOperationSettings(userAIProfile?.GlobalChat),
+                NoteChat = MapOperationSettings(userAIProfile?.NoteChat),
 
                 ProviderSettings = new Dictionary<string, Dictionary<string, string>>()
             };
@@ -108,6 +110,19 @@ namespace NeuroNotes.Application.Features.Users.Queries.GetUserAIProfile
             if (databaseValue.HasValue && Convert.ToInt32(databaseValue.Value) != 0) return databaseValue.Value;
 
             return defaultValue;
+        }
+
+        private static AIOperationSettingsResponseDto? MapOperationSettings(
+            Domain.ValueObjects.AIOperationSettings? settings)
+        {
+            if (settings is null) return null;
+
+            return new AIOperationSettingsResponseDto
+            {
+                TargetLanguage = settings.TargetLanguage,
+                CustomPrompt = settings.CustomPrompt,
+                UseCustomPrompt = settings.UseCustomPrompt
+            };
         }
 
         private Dictionary<string, Dictionary<string, string>> DeserializeSettings(string? json)

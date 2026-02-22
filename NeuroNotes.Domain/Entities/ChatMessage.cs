@@ -7,9 +7,7 @@ namespace NeuroNotes.Domain.Entities
     {
         public Guid ChatSessionId { get; private set; }
 
-        // --- ДОБАВЛЕНО: Навигационное свойство ---
-        // Это позволяет EF Core корректно обновлять связи в памяти
-        public virtual ChatSession? ChatSession { get; private set; }
+        public ChatSession? ChatSession { get; private set; } 
 
         public ChatRole Role { get; private set; }
         public string Content { get; private set; } = string.Empty;

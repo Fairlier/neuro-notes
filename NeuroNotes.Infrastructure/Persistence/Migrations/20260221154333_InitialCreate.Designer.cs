@@ -13,8 +13,8 @@ using Pgvector;
 namespace NeuroNotes.Infrastructure.Persistence.Migrations
 {
     [DbContext(typeof(NeuroNotesDbContext))]
-    [Migration("20251218125416_initial")]
-    partial class initial
+    [Migration("20260221154333_InitialCreate")]
+    partial class InitialCreate
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -220,8 +220,14 @@ namespace NeuroNotes.Infrastructure.Persistence.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
+                    b.Property<int?>("Category")
+                        .HasColumnType("integer");
+
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("ErrorMessage")
+                        .HasColumnType("text");
 
                     b.Property<string>("RawText")
                         .HasColumnType("text");
@@ -341,25 +347,17 @@ namespace NeuroNotes.Infrastructure.Persistence.Migrations
 
                     b.Property<string>("AIOperationLanguage")
                         .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<int>("ChatProvider")
-                        .HasColumnType("integer");
+                        .HasMaxLength(2)
+                        .HasColumnType("character varying(2)");
 
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
 
-                    b.Property<string>("CustomChatPrompt")
-                        .HasColumnType("text");
+                    b.Property<int>("GlobalChatProvider")
+                        .HasColumnType("integer");
 
-                    b.Property<string>("CustomStructurePrompt")
-                        .HasColumnType("text");
-
-                    b.Property<string>("CustomSummaryPrompt")
-                        .HasColumnType("text");
-
-                    b.Property<string>("CustomTranscriptionPrompt")
-                        .HasColumnType("text");
+                    b.Property<int>("NoteChatProvider")
+                        .HasColumnType("integer");
 
                     b.Property<string>("ProviderSettingsJson")
                         .IsRequired()
@@ -383,6 +381,9 @@ namespace NeuroNotes.Infrastructure.Persistence.Migrations
 
                     b.HasKey("Id");
 
+                    b.HasIndex("UserId")
+                        .IsUnique();
+
                     b.ToTable("UserAIProfiles");
                 });
 
@@ -391,6 +392,9 @@ namespace NeuroNotes.Infrastructure.Persistence.Migrations
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
+
+                    b.Property<string>("AvatarUrl")
+                        .HasColumnType("text");
 
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
@@ -550,6 +554,144 @@ namespace NeuroNotes.Infrastructure.Persistence.Migrations
                         .IsRequired();
 
                     b.Navigation("Note");
+                });
+
+            modelBuilder.Entity("NeuroNotes.Domain.Entities.UserAIProfile", b =>
+                {
+                    b.OwnsOne("NeuroNotes.Domain.ValueObjects.AIOperationSettings", "GlobalChat", b1 =>
+                        {
+                            b1.Property<Guid>("UserAIProfileId")
+                                .HasColumnType("uuid");
+
+                            b1.Property<string>("CustomPrompt")
+                                .HasMaxLength(5000)
+                                .HasColumnType("character varying(5000)");
+
+                            b1.Property<string>("TargetLanguage")
+                                .HasMaxLength(2)
+                                .HasColumnType("character varying(2)");
+
+                            b1.Property<bool>("UseCustomPrompt")
+                                .HasColumnType("boolean");
+
+                            b1.HasKey("UserAIProfileId");
+
+                            b1.ToTable("UserAIProfiles");
+
+                            b1.WithOwner()
+                                .HasForeignKey("UserAIProfileId");
+                        });
+
+                    b.OwnsOne("NeuroNotes.Domain.ValueObjects.AIOperationSettings", "NoteChat", b1 =>
+                        {
+                            b1.Property<Guid>("UserAIProfileId")
+                                .HasColumnType("uuid");
+
+                            b1.Property<string>("CustomPrompt")
+                                .HasMaxLength(5000)
+                                .HasColumnType("character varying(5000)");
+
+                            b1.Property<string>("TargetLanguage")
+                                .HasMaxLength(2)
+                                .HasColumnType("character varying(2)");
+
+                            b1.Property<bool>("UseCustomPrompt")
+                                .HasColumnType("boolean");
+
+                            b1.HasKey("UserAIProfileId");
+
+                            b1.ToTable("UserAIProfiles");
+
+                            b1.WithOwner()
+                                .HasForeignKey("UserAIProfileId");
+                        });
+
+                    b.OwnsOne("NeuroNotes.Domain.ValueObjects.AIOperationSettings", "Structuring", b1 =>
+                        {
+                            b1.Property<Guid>("UserAIProfileId")
+                                .HasColumnType("uuid");
+
+                            b1.Property<string>("CustomPrompt")
+                                .HasMaxLength(5000)
+                                .HasColumnType("character varying(5000)");
+
+                            b1.Property<string>("TargetLanguage")
+                                .HasMaxLength(2)
+                                .HasColumnType("character varying(2)");
+
+                            b1.Property<bool>("UseCustomPrompt")
+                                .HasColumnType("boolean");
+
+                            b1.HasKey("UserAIProfileId");
+
+                            b1.ToTable("UserAIProfiles");
+
+                            b1.WithOwner()
+                                .HasForeignKey("UserAIProfileId");
+                        });
+
+                    b.OwnsOne("NeuroNotes.Domain.ValueObjects.AIOperationSettings", "Summarization", b1 =>
+                        {
+                            b1.Property<Guid>("UserAIProfileId")
+                                .HasColumnType("uuid");
+
+                            b1.Property<string>("CustomPrompt")
+                                .HasMaxLength(2000)
+                                .HasColumnType("character varying(2000)");
+
+                            b1.Property<string>("TargetLanguage")
+                                .HasMaxLength(2)
+                                .HasColumnType("character varying(2)");
+
+                            b1.Property<bool>("UseCustomPrompt")
+                                .HasColumnType("boolean");
+
+                            b1.HasKey("UserAIProfileId");
+
+                            b1.ToTable("UserAIProfiles");
+
+                            b1.WithOwner()
+                                .HasForeignKey("UserAIProfileId");
+                        });
+
+                    b.OwnsOne("NeuroNotes.Domain.ValueObjects.AIOperationSettings", "Transcription", b1 =>
+                        {
+                            b1.Property<Guid>("UserAIProfileId")
+                                .HasColumnType("uuid");
+
+                            b1.Property<string>("CustomPrompt")
+                                .HasMaxLength(2000)
+                                .HasColumnType("character varying(2000)");
+
+                            b1.Property<string>("TargetLanguage")
+                                .HasMaxLength(2)
+                                .HasColumnType("character varying(2)");
+
+                            b1.Property<bool>("UseCustomPrompt")
+                                .HasColumnType("boolean");
+
+                            b1.HasKey("UserAIProfileId");
+
+                            b1.ToTable("UserAIProfiles");
+
+                            b1.WithOwner()
+                                .HasForeignKey("UserAIProfileId");
+                        });
+
+                    b.Navigation("GlobalChat")
+                        .IsRequired();
+
+                    b.Navigation("NoteChat")
+                        .IsRequired();
+
+                    b.Navigation("Structuring")
+                        .IsRequired();
+
+                    b.Navigation("Summarization")
+                        .IsRequired();
+
+                    b.Navigation("Transcription")
+                        .IsRequired();
                 });
 
             modelBuilder.Entity("NeuroNotes.Domain.Entities.ChatSession", b =>

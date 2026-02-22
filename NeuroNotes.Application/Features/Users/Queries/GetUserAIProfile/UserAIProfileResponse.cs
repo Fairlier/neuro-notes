@@ -7,16 +7,16 @@ namespace NeuroNotes.Application.Features.Users.Queries.GetUserAIProfile
         public string AIOperationLanguage { get; set; } = string.Empty;
 
         public TranscriptionProviderType TranscriptionProvider { get; set; }
-        public string? CustomTranscriptionPrompt { get; set; }
-
         public StructureProviderType StructureProvider { get; set; }
-        public string? CustomStructurePrompt { get; set; }
-
         public SummaryProviderType SummaryProvider { get; set; }
-        public string? CustomSummaryPrompt { get; set; }
+        public ChatProviderType GlobalChatProvider { get; set; }
+        public ChatProviderType NoteChatProvider { get; set; }
 
-        public ChatProviderType ChatProvider { get; set; }
-        public string? CustomChatPrompt { get; set; }
+        public AIOperationSettingsResponseDto? Transcription { get; set; }
+        public AIOperationSettingsResponseDto? Structuring { get; set; }
+        public AIOperationSettingsResponseDto? Summarization { get; set; }
+        public AIOperationSettingsResponseDto? GlobalChat { get; set; }
+        public AIOperationSettingsResponseDto? NoteChat { get; set; }
 
         public Dictionary<string, Dictionary<string, string>> ProviderSettings { get; set; } = new();
     }

@@ -53,9 +53,10 @@ namespace NeuroNotes.Application.Features.Auth.Commands.RegisterUser
             userAIProfile.UpdatePreferences(
                 _aiOptions.DefaultAIOperationLanguage,
                 _aiOptions.DefaultTranscriptionProvider,
-                _aiOptions.DefaultChatProvider,
                 _aiOptions.DefaultStructureProvider,
-                _aiOptions.DefaultSummaryProvider
+                _aiOptions.DefaultSummaryProvider,
+                _aiOptions.DefaultGlobalChatProvider,
+                _aiOptions.DefaultNoteChatProvider
             );
 
             var providerSettings = new Dictionary<string, Dictionary<string, string>>
@@ -66,7 +67,8 @@ namespace NeuroNotes.Application.Features.Auth.Commands.RegisterUser
                     { "TranscriptionModel", _aiOptions.Gemini.TranscriptionModel },
                     { "StructureModel", _aiOptions.Gemini.StructureModel },
                     { "SummaryModel", _aiOptions.Gemini.SummaryModel },
-                    { "ChatModel", _aiOptions.Gemini.ChatModel }
+                    { "GlobalChatModel", _aiOptions.Gemini.GlobalChatModel },
+                    { "NoteChatModel", _aiOptions.Gemini.NoteChatModel }
                 },
                 ["Mistral"] = new Dictionary<string, string>
                 {
@@ -74,7 +76,8 @@ namespace NeuroNotes.Application.Features.Auth.Commands.RegisterUser
                     { "TranscriptionModel", _aiOptions.Mistral.TranscriptionModel },
                     { "StructureModel", _aiOptions.Mistral.StructureModel },
                     { "SummaryModel", _aiOptions.Mistral.SummaryModel },
-                    { "ChatModel", _aiOptions.Mistral.ChatModel }
+                    { "GlobalChatModel", _aiOptions.Mistral.GlobalChatModel },
+                    { "NoteChatModel", _aiOptions.Mistral.NoteChatModel }
                 }
             };
 

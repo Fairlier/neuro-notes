@@ -1,5 +1,6 @@
 ﻿using NeuroNotes.Domain.Common;
 using NeuroNotes.Domain.Enums;
+using NeuroNotes.Domain.ValueObjects;
 using System.Text.Json;
 
 namespace NeuroNotes.Domain.Entities
@@ -10,15 +11,18 @@ namespace NeuroNotes.Domain.Entities
         public string AIOperationLanguage { get; private set; } = string.Empty;
 
         public TranscriptionProviderType TranscriptionProvider { get; private set; }
-        public ChatProviderType ChatProvider { get; private set; } 
         public StructureProviderType StructureProvider { get; private set; } 
         public SummaryProviderType SummaryProvider { get; private set; }
+        public ChatProviderType GlobalChatProvider { get; private set; }
+        public ChatProviderType NoteChatProvider { get; private set; }
 
         public string ProviderSettingsJson { get; private set; } = "{}";
-        public string? CustomTranscriptionPrompt { get; private set; }
-        public string? CustomStructurePrompt { get; private set; } 
-        public string? CustomSummaryPrompt { get; private set; }
-        public string? CustomChatPrompt { get; private set; }
+
+        public AIOperationSettings Transcription { get; private set; } = AIOperationSettings.Default();
+        public AIOperationSettings Structuring { get; private set; } = AIOperationSettings.Default();
+        public AIOperationSettings Summarization { get; private set; } = AIOperationSettings.Default();
+        public AIOperationSettings GlobalChat { get; private set; } = AIOperationSettings.Default();
+        public AIOperationSettings NoteChat { get; private set; } = AIOperationSettings.Default();
 
         protected UserAIProfile() { }
 
@@ -30,16 +34,18 @@ namespace NeuroNotes.Domain.Entities
         public void UpdatePreferences(
             string aiOperationLanguage,
             TranscriptionProviderType transProvider,
-            ChatProviderType chatProvider,
             StructureProviderType structureProvider, 
-            SummaryProviderType summaryProvider      
+            SummaryProviderType summaryProvider ,
+            ChatProviderType globalChatProvider,
+            ChatProviderType noteChatProvider
             )
         {
             AIOperationLanguage = aiOperationLanguage;
             TranscriptionProvider = transProvider;
-            ChatProvider = chatProvider;
             StructureProvider = structureProvider;
             SummaryProvider = summaryProvider;
+            GlobalChatProvider = globalChatProvider;
+            NoteChatProvider = noteChatProvider;
             UpdatedAt = DateTime.UtcNow;
         }
 
@@ -83,7 +89,7 @@ namespace NeuroNotes.Domain.Entities
             try
             {
                 var data = JsonSerializer.Deserialize<Dictionary<string, Dictionary<string, string>>>(ProviderSettingsJson);
-                return data != null && data.TryGetValue(providerName, out var settings) ? settings : new Dictionary<string, string>();
+                return data is not null && data.TryGetValue(providerName, out var settings) ? settings : new Dictionary<string, string>();
             }
             catch
             {
@@ -91,16 +97,33 @@ namespace NeuroNotes.Domain.Entities
             }
         }
 
-        public void SetPrompts(
-            string? transPrompt,
-            string? analysisPrompt,
-            string? chatPrompt,
-            string? summaryPrompt)
+        public void UpdateTranscription(string? targetLanguage, string? customPrompt, bool useCustomPrompt)
         {
-            CustomTranscriptionPrompt = transPrompt;
-            CustomStructurePrompt = analysisPrompt;
-            CustomChatPrompt = chatPrompt;
-            CustomSummaryPrompt = summaryPrompt; 
+            Transcription = Transcription with { TargetLanguage = targetLanguage, CustomPrompt = customPrompt, UseCustomPrompt = useCustomPrompt };
+            UpdatedAt = DateTime.UtcNow;
+        }
+
+        public void UpdateStructuring(string? targetLanguage, string? customPrompt, bool useCustomPrompt)
+        {
+            Structuring = Structuring with { TargetLanguage = targetLanguage, CustomPrompt = customPrompt, UseCustomPrompt = useCustomPrompt };
+            UpdatedAt = DateTime.UtcNow;
+        }
+
+        public void UpdateSummarization(string? targetLanguage, string? customPrompt, bool useCustomPrompt)
+        {
+            Summarization = Summarization with { TargetLanguage = targetLanguage, CustomPrompt = customPrompt, UseCustomPrompt = useCustomPrompt };
+            UpdatedAt = DateTime.UtcNow;
+        }
+
+        public void UpdateGlobalChat(string? targetLanguage, string? customPrompt, bool useCustomPrompt)
+        {
+            GlobalChat = GlobalChat with { TargetLanguage = targetLanguage, CustomPrompt = customPrompt, UseCustomPrompt = useCustomPrompt };
+            UpdatedAt = DateTime.UtcNow;
+        }
+
+        public void UpdateNoteChat(string? targetLanguage, string? customPrompt, bool useCustomPrompt)
+        {
+            NoteChat = NoteChat with { TargetLanguage = targetLanguage, CustomPrompt = customPrompt, UseCustomPrompt = useCustomPrompt };
             UpdatedAt = DateTime.UtcNow;
         }
     }

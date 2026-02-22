@@ -8,7 +8,7 @@ using Pgvector;
 namespace NeuroNotes.Infrastructure.Persistence.Migrations
 {
     /// <inheritdoc />
-    public partial class initial : Migration
+    public partial class InitialCreate : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -80,6 +80,8 @@ namespace NeuroNotes.Infrastructure.Persistence.Migrations
                     Title = table.Column<string>(type: "character varying(200)", maxLength: 200, nullable: false),
                     SourceType = table.Column<string>(type: "text", nullable: false),
                     SourceFileUrl = table.Column<string>(type: "text", nullable: true),
+                    Category = table.Column<int>(type: "integer", nullable: true),
+                    ErrorMessage = table.Column<string>(type: "text", nullable: true),
                     RawText = table.Column<string>(type: "text", nullable: true),
                     StructuredText = table.Column<string>(type: "text", nullable: true),
                     SummaryText = table.Column<string>(type: "text", nullable: true),
@@ -118,16 +120,28 @@ namespace NeuroNotes.Infrastructure.Persistence.Migrations
                 {
                     Id = table.Column<Guid>(type: "uuid", nullable: false),
                     UserId = table.Column<string>(type: "text", nullable: false),
-                    AIOperationLanguage = table.Column<string>(type: "text", nullable: false),
+                    AIOperationLanguage = table.Column<string>(type: "character varying(2)", maxLength: 2, nullable: false),
                     TranscriptionProvider = table.Column<int>(type: "integer", nullable: false),
-                    ChatProvider = table.Column<int>(type: "integer", nullable: false),
                     StructureProvider = table.Column<int>(type: "integer", nullable: false),
                     SummaryProvider = table.Column<int>(type: "integer", nullable: false),
+                    GlobalChatProvider = table.Column<int>(type: "integer", nullable: false),
+                    NoteChatProvider = table.Column<int>(type: "integer", nullable: false),
                     ProviderSettingsJson = table.Column<string>(type: "jsonb", nullable: false),
-                    CustomTranscriptionPrompt = table.Column<string>(type: "text", nullable: true),
-                    CustomStructurePrompt = table.Column<string>(type: "text", nullable: true),
-                    CustomSummaryPrompt = table.Column<string>(type: "text", nullable: true),
-                    CustomChatPrompt = table.Column<string>(type: "text", nullable: true),
+                    Transcription_TargetLanguage = table.Column<string>(type: "character varying(2)", maxLength: 2, nullable: true),
+                    Transcription_CustomPrompt = table.Column<string>(type: "character varying(2000)", maxLength: 2000, nullable: true),
+                    Transcription_UseCustomPrompt = table.Column<bool>(type: "boolean", nullable: false),
+                    Structuring_TargetLanguage = table.Column<string>(type: "character varying(2)", maxLength: 2, nullable: true),
+                    Structuring_CustomPrompt = table.Column<string>(type: "character varying(5000)", maxLength: 5000, nullable: true),
+                    Structuring_UseCustomPrompt = table.Column<bool>(type: "boolean", nullable: false),
+                    Summarization_TargetLanguage = table.Column<string>(type: "character varying(2)", maxLength: 2, nullable: true),
+                    Summarization_CustomPrompt = table.Column<string>(type: "character varying(2000)", maxLength: 2000, nullable: true),
+                    Summarization_UseCustomPrompt = table.Column<bool>(type: "boolean", nullable: false),
+                    GlobalChat_TargetLanguage = table.Column<string>(type: "character varying(2)", maxLength: 2, nullable: true),
+                    GlobalChat_CustomPrompt = table.Column<string>(type: "character varying(5000)", maxLength: 5000, nullable: true),
+                    GlobalChat_UseCustomPrompt = table.Column<bool>(type: "boolean", nullable: false),
+                    NoteChat_TargetLanguage = table.Column<string>(type: "character varying(2)", maxLength: 2, nullable: true),
+                    NoteChat_CustomPrompt = table.Column<string>(type: "character varying(5000)", maxLength: 5000, nullable: true),
+                    NoteChat_UseCustomPrompt = table.Column<bool>(type: "boolean", nullable: false),
                     CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
                     UpdatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: true)
                 },
@@ -144,6 +158,7 @@ namespace NeuroNotes.Infrastructure.Persistence.Migrations
                     UserId = table.Column<string>(type: "text", nullable: false),
                     Nickname = table.Column<string>(type: "text", nullable: false),
                     InterfaceLanguage = table.Column<string>(type: "text", nullable: false),
+                    AvatarUrl = table.Column<string>(type: "text", nullable: true),
                     CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
                     UpdatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: true)
                 },
@@ -353,6 +368,12 @@ namespace NeuroNotes.Infrastructure.Persistence.Migrations
                 name: "IX_RefreshTokens_Token",
                 table: "RefreshTokens",
                 column: "Token",
+                unique: true);
+
+            migrationBuilder.CreateIndex(
+                name: "IX_UserAIProfiles_UserId",
+                table: "UserAIProfiles",
+                column: "UserId",
                 unique: true);
         }
 

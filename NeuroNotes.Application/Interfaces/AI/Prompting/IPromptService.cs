@@ -5,6 +5,7 @@
         Task<string> GetTranscriptionSystemPromptAsync(string userId);
         Task<string> GetStructureSystemPromptAsync(string userId);
         Task<string> GetSummarySystemPromptAsync(string userId);
-        Task<string> GetChatSystemPromptAsync(string userId);
+        Task<string> GetGlobalChatSystemPromptAsync(string userId);
+        Task<string> GetNoteChatSystemPromptAsync(string userId);
     }
 }

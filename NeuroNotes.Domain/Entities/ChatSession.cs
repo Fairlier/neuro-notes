@@ -7,7 +7,6 @@ namespace NeuroNotes.Domain.Entities
     {
         public string UserId { get; private set; } = string.Empty;
 
-        // Если null, то это глобальный чат ("Chat with All Notes")
         public Guid? RelatedNoteId { get; private set; }
 
         public string Title { get; private set; } = string.Empty;

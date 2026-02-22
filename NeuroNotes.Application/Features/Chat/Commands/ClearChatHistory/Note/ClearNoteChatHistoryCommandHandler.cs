@@ -1,28 +1,29 @@
 ﻿using MediatR;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using NeuroNotes.Application.Common.Exceptions;
 using NeuroNotes.Application.Interfaces.Identity;
 using NeuroNotes.Application.Interfaces.Persistence;
 
-namespace NeuroNotes.Application.Features.Chat.Commands.ClearChatHistory
+namespace NeuroNotes.Application.Features.Chat.Commands.ClearChatHistory.Note
 {
-    public class ClearChatHistoryCommandHandler : IRequestHandler<ClearChatHistoryCommand>
+    public class ClearNoteChatHistoryCommandHandler : IRequestHandler<ClearNoteChatHistoryCommand>
     {
         private readonly IApplicationDbContext _context;
         private readonly ICurrentUserService _currentUserService;
-        private readonly ILogger<ClearChatHistoryCommandHandler> _logger;
+        private readonly ILogger<ClearNoteChatHistoryCommandHandler> _logger;
 
-        public ClearChatHistoryCommandHandler(
+        public ClearNoteChatHistoryCommandHandler(
             IApplicationDbContext context,
             ICurrentUserService currentUserService,
-            ILogger<ClearChatHistoryCommandHandler> logger)
+            ILogger<ClearNoteChatHistoryCommandHandler> logger)
         {
             _context = context;
             _currentUserService = currentUserService;
             _logger = logger;
         }
 
-        public async Task Handle(ClearChatHistoryCommand request, CancellationToken cancellationToken)
+        public async Task Handle(ClearNoteChatHistoryCommand request, CancellationToken cancellationToken)
         {
             var userId = _currentUserService.UserId;
             if (string.IsNullOrEmpty(userId))
@@ -32,8 +33,14 @@ namespace NeuroNotes.Application.Features.Chat.Commands.ClearChatHistory
             }
 
             _logger.LogInformation(
-                "Starts clearing chat history for User {UserId}. NoteContext: {NoteId}",
+                "Starts clearing chat history for User {UserId}. Note: {NoteId}",
                 userId, request.NoteId);
+
+            var noteExists = await _context.Notes.AsNoTracking()
+                .AnyAsync(n => n.Id == request.NoteId && n.UserId == userId, cancellationToken);
+
+            if (!noteExists)
+                throw new NotFoundException(nameof(Note), request.NoteId);
 
             var session = await _context.ChatSessions
                 .Include(s => s.Messages)

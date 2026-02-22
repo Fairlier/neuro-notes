@@ -10,6 +10,8 @@ namespace NeuroNotes.Domain.Entities
 
         public string InterfaceLanguage { get; private set; } = string.Empty;
 
+        public string? AvatarUrl { get; private set; }
+
         protected UserProfile() { }
 
         public UserProfile(string userId, string nickname, string interfaceLanguage)
@@ -23,6 +25,24 @@ namespace NeuroNotes.Domain.Entities
         {
             Nickname = nickname;
             InterfaceLanguage = interfaceLanguage;
+            UpdatedAt = DateTime.UtcNow;
+        }
+
+        public void UpdateNickname(string nickname)
+        {
+            Nickname = nickname;
+            UpdatedAt = DateTime.UtcNow;
+        }
+
+        public void UpdateInterfaceLanguage(string language)
+        {
+            InterfaceLanguage = language;
+            UpdatedAt = DateTime.UtcNow;
+        }
+
+        public void UpdateAvatar(string? avatarUrl)
+        {
+            AvatarUrl = avatarUrl;
             UpdatedAt = DateTime.UtcNow;
         }
     }

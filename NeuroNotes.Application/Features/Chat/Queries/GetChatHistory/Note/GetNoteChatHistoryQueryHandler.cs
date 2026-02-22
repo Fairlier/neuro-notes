@@ -1,24 +1,28 @@
-﻿using AutoMapper;
+﻿
+using AutoMapper;
+using FluentValidation;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using NeuroNotes.Application.Common.Exceptions;
 using NeuroNotes.Application.Interfaces.Identity;
 using NeuroNotes.Application.Interfaces.Persistence;
 
-namespace NeuroNotes.Application.Features.Chat.Queries.GetChatHistory
+namespace NeuroNotes.Application.Features.Chat.Queries.GetChatHistory.Note
 {
-    public class GetChatHistoryQueryHandler : IRequestHandler<GetChatHistoryQuery, ChatHistoryResponse>
+    public class GetNoteChatHistoryQueryHandler
+        : IRequestHandler<GetNoteChatHistoryQuery, ChatHistoryResponse>
     {
         private readonly IApplicationDbContext _context;
         private readonly ICurrentUserService _currentUserService;
         private readonly IMapper _mapper;
-        private readonly ILogger<GetChatHistoryQueryHandler> _logger;
+        private readonly ILogger<GetNoteChatHistoryQueryHandler> _logger;
 
-        public GetChatHistoryQueryHandler(
+        public GetNoteChatHistoryQueryHandler(
             IApplicationDbContext context,
             ICurrentUserService currentUserService,
             IMapper mapper,
-            ILogger<GetChatHistoryQueryHandler> logger)
+            ILogger<GetNoteChatHistoryQueryHandler> logger)
         {
             _context = context;
             _currentUserService = currentUserService;
@@ -26,35 +30,47 @@ namespace NeuroNotes.Application.Features.Chat.Queries.GetChatHistory
             _logger = logger;
         }
 
-        public async Task<ChatHistoryResponse> Handle(GetChatHistoryQuery request, CancellationToken cancellationToken)
+        public async Task<ChatHistoryResponse> Handle(
+            GetNoteChatHistoryQuery request,
+            CancellationToken cancellationToken)
         {
             var userId = _currentUserService.UserId;
             if (string.IsNullOrEmpty(userId))
             {
-                _logger.LogWarning("Unauthorized access attempt in GetChatHistory.");
+                _logger.LogWarning("Unauthorized access attempt in GetNoteChatHistory.");
                 throw new UnauthorizedAccessException("User is not authenticated.");
             }
 
             _logger.LogInformation(
-                "Starts retrieving chat history for User {UserId}. NoteContext: {NoteId}",
+                "Retrieving note chat history for User {UserId}, Note {NoteId}",
                 userId, request.NoteId);
+
+            var note = await _context.Notes.AsNoTracking()
+                .FirstOrDefaultAsync(
+                    n => n.Id == request.NoteId && n.UserId == userId,
+                    cancellationToken);
+
+            if (note is null)
+                throw new NotFoundException(nameof(Note), request.NoteId);
 
             var session = await _context.ChatSessions
                 .AsNoTracking()
-                .Include(s => s.Messages) 
-                .FirstOrDefaultAsync(s => s.UserId == userId && s.RelatedNoteId == request.NoteId, cancellationToken);
+                .Include(s => s.Messages)
+                .FirstOrDefaultAsync(
+                    s => s.UserId == userId && s.RelatedNoteId == request.NoteId,
+                    cancellationToken);
 
             if (session is null)
             {
                 _logger.LogInformation(
-                    "Chat session not found for User {UserId}. Returning empty history context.",
-                    userId);
+                    "Note chat session not found for User {NoteId}. Returning empty history.",
+                    request.NoteId);
 
                 return new ChatHistoryResponse
                 {
                     SessionId = Guid.Empty,
                     RelatedNoteId = request.NoteId,
-                    Title = request.NoteId.HasValue ? "Note Chat" : "Global Chat",
+                    Title = $"Note Chat: {note.Title}",
                     Messages = new List<ChatMessageDto>()
                 };
             }
@@ -65,7 +81,7 @@ namespace NeuroNotes.Application.Features.Chat.Queries.GetChatHistory
                 .ToList();
 
             _logger.LogInformation(
-                "Successfully retrieved chat history. SessionId: {SessionId}, Messages: {Count}",
+                "Successfully retrieved note chat history. SessionId: {SessionId}, Messages: {Count}",
                 session.Id, messageDtos.Count);
 
             return new ChatHistoryResponse

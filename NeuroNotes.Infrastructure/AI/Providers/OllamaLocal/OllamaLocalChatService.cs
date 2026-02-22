@@ -35,7 +35,7 @@ namespace NeuroNotes.Infrastructure.AI.Providers.OllamaLocal
         {
             var chatModel = providerSettings is not null && providerSettings.TryGetValue("ChatModel", out var mdl) && !string.IsNullOrWhiteSpace(mdl)
                 ? mdl
-                : _defaultOptions.ChatModel;
+                : _defaultOptions.GlobalChatModel;
 
             var temperature = 0.7;
             if (providerSettings is not null && providerSettings.TryGetValue("Temperature", out var tempStr) &&

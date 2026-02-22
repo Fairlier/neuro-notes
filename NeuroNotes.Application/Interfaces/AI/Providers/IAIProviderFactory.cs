@@ -8,11 +8,13 @@ namespace NeuroNotes.Application.Interfaces.AI.Providers
         ITranscriptionService GetTranscriptionService(TranscriptionProviderType provider);
         IStructureService GetStructureService(StructureProviderType provider);
         ISummaryService GetSummaryService(SummaryProviderType provider);
-        IChatService GetChatService(ChatProviderType provider);
+        IChatService GetGlobalChatService(ChatProviderType provider);
+        IChatService GetNoteChatService(ChatProviderType provider);
 
         ITranscriptionService GetTranscriptionService();
         IStructureService GetStructureService();
         ISummaryService GetSummaryService();
-        IChatService GetChatService();
+        IChatService GetGlobalChatService();
+        IChatService GetNoteChatService();
     }
 }

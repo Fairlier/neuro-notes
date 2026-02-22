@@ -14,7 +14,7 @@ namespace NeuroNotes.Domain.Entities
             SourceType = sourceType;
             SourceFileUrl = sourceFileUrl;
 
-            Status = sourceType == NoteSourceType.AudioFile ? NoteStatus.Processing : NoteStatus.Raw;
+            Status = GetInitialStatus(sourceType);
             CreatedAt = DateTime.UtcNow;
         }
 
@@ -23,6 +23,9 @@ namespace NeuroNotes.Domain.Entities
         public NoteSourceType SourceType { get; private set; }
         public string? SourceFileUrl { get; private set; }
 
+        public NoteCategory? Category { get; private set; }
+        public string? ErrorMessage { get; private set; }
+
         public string? RawText { get; private set; }       
         public string? StructuredText { get; private set; } 
         public string? SummaryText { get; private set; }    
@@ -30,11 +33,28 @@ namespace NeuroNotes.Domain.Entities
         public NoteStatus Status { get; private set; }
 
 
+        private static NoteStatus GetInitialStatus(NoteSourceType sourceType)
+        {
+            return sourceType switch
+            {
+                NoteSourceType.AudioFile => NoteStatus.Processing,
+                NoteSourceType.DirectText => NoteStatus.Raw,
+                _ => NoteStatus.Raw // TODO лучше тут что-нибудь придумать с исключениями
+            };
+        }
+
+        public void SetCategory(NoteCategory? category)
+        {
+            Category = category;
+            UpdatedAt = DateTime.UtcNow;
+        }
+
         public void SetRawText(string text)
         {
             RawText = text;
             Status = NoteStatus.Raw;
             UpdatedAt = DateTime.UtcNow;
+            ErrorMessage = null;
         }
 
         public void SetStructuredText(string structured)
@@ -42,19 +62,21 @@ namespace NeuroNotes.Domain.Entities
             StructuredText = structured;
             Status = NoteStatus.Structured;
             UpdatedAt = DateTime.UtcNow;
+            ErrorMessage = null;
         }
 
         public void SetSummaryText(string summary)
         {
             SummaryText = summary;
-            Status = NoteStatus.Completed;
+            Status = NoteStatus.Summarized;
             UpdatedAt = DateTime.UtcNow;
+            ErrorMessage = null;
         }
 
         public void FailProcessing(string error)
         {
             Status = NoteStatus.Failed;
-            SummaryText = $"Error: {error}";
+            ErrorMessage = error;
             UpdatedAt = DateTime.UtcNow;
         }
 
@@ -92,7 +114,7 @@ namespace NeuroNotes.Domain.Entities
             if (SummaryText != newText)
             {
                 SummaryText = newText;
-                Status = NoteStatus.Completed;
+                Status = NoteStatus.Summarized;
                 UpdatedAt = DateTime.UtcNow;
             }
         }

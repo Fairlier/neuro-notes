@@ -53,11 +53,10 @@ namespace NeuroNotes.Application.Features.Users.Commands.UpdateUserAIProfile
                 await _context.UserAIProfiles.AddAsync(userAIProfile, token);
             }
 
-            var targetLanguage = !string.IsNullOrEmpty(request.AIOperationLanguage)
-                ? request.AIOperationLanguage
-                : (string.IsNullOrEmpty(userAIProfile.AIOperationLanguage) 
-                    ? _aiDefaults.DefaultAIOperationLanguage 
-                    : userAIProfile.AIOperationLanguage);
+            var targetLanguage = ResolveString(
+                request.AIOperationLanguage,
+                userAIProfile.AIOperationLanguage,
+                _aiDefaults.DefaultAIOperationLanguage);
 
             var transcriptionProvider = ResolveProvider(
                 request.TranscriptionProvider,
@@ -74,17 +73,23 @@ namespace NeuroNotes.Application.Features.Users.Commands.UpdateUserAIProfile
                 userAIProfile.SummaryProvider,
                 _aiDefaults.DefaultSummaryProvider);
 
-            var chatProvider = ResolveProvider(
-                request.ChatProvider,
-                userAIProfile.ChatProvider,
-                _aiDefaults.DefaultChatProvider);
+            var globalChatProvider = ResolveProvider(
+                request.GlobalChatProvider,
+                userAIProfile.GlobalChatProvider,
+                _aiDefaults.DefaultGlobalChatProvider);
+
+            var noteChatProvider = ResolveProvider(
+                request.NoteChatProvider,
+                userAIProfile.NoteChatProvider,
+                _aiDefaults.DefaultNoteChatProvider);
 
             userAIProfile.UpdatePreferences(
                 targetLanguage,
                 transcriptionProvider,
-                chatProvider,
                 structureProvider,
-                summaryProvider
+                summaryProvider,
+                globalChatProvider,
+                noteChatProvider
             );
 
             if (request.ProviderSettings is not null)
@@ -95,12 +100,51 @@ namespace NeuroNotes.Application.Features.Users.Commands.UpdateUserAIProfile
                 }
             }
 
-            userAIProfile.SetPrompts(
-                request.CustomTranscriptionPrompt ?? userAIProfile.CustomTranscriptionPrompt,
-                request.CustomStructurePrompt ?? userAIProfile.CustomStructurePrompt,
-                request.CustomChatPrompt ?? userAIProfile.CustomChatPrompt,
-                request.CustomSummaryPrompt ?? userAIProfile.CustomSummaryPrompt
-            );
+            if (request.Transcription is not null)
+            {
+                userAIProfile.UpdateTranscription(
+                    request.Transcription.TargetLanguage ?? userAIProfile.Transcription.TargetLanguage,
+                    request.Transcription.CustomPrompt ?? userAIProfile.Transcription.CustomPrompt,
+                    request.Transcription.UseCustomPrompt ?? userAIProfile.Transcription.UseCustomPrompt
+                );
+            }
+
+            if (request.Structuring is not null)
+            {
+                userAIProfile.UpdateStructuring(
+                    request.Structuring.TargetLanguage ?? userAIProfile.Structuring.TargetLanguage,
+                    request.Structuring.CustomPrompt ?? userAIProfile.Structuring.CustomPrompt,
+                    request.Structuring.UseCustomPrompt ?? userAIProfile.Structuring.UseCustomPrompt
+                );
+            }
+
+            if (request.Summarization is not null)
+            {
+                userAIProfile.UpdateSummarization(
+                    request.Summarization.TargetLanguage ?? userAIProfile.Summarization.TargetLanguage,
+                    request.Summarization.CustomPrompt ?? userAIProfile.Summarization.CustomPrompt,
+                    request.Summarization.UseCustomPrompt ?? userAIProfile.Summarization.UseCustomPrompt
+                );
+            }
+
+            if (request.GlobalChat is not null)
+            {
+                userAIProfile.UpdateGlobalChat(
+                    request.GlobalChat.TargetLanguage ?? userAIProfile.GlobalChat.TargetLanguage,
+                    request.GlobalChat.CustomPrompt ?? userAIProfile.GlobalChat.CustomPrompt,
+                    request.GlobalChat.UseCustomPrompt ?? userAIProfile.GlobalChat.UseCustomPrompt
+                );
+            }
+
+            if (request.NoteChat is not null)
+            {
+                userAIProfile.UpdateNoteChat(
+                    request.NoteChat.TargetLanguage ?? userAIProfile.NoteChat.TargetLanguage,
+                    request.NoteChat.CustomPrompt ?? userAIProfile.NoteChat.CustomPrompt,
+                    request.NoteChat.UseCustomPrompt ?? userAIProfile.NoteChat.UseCustomPrompt
+                );
+            }
+
 
             await _context.SaveChangesAsync(token);
 
@@ -116,6 +160,15 @@ namespace NeuroNotes.Application.Features.Users.Commands.UpdateUserAIProfile
 
             if (Convert.ToInt32(databaseValue) != 0) return databaseValue;
 
+            return defaultValue;
+        }
+
+        private static string ResolveString(string? requestValue, string databaseValue, string defaultValue)
+        {
+            if (!string.IsNullOrEmpty(requestValue)) return requestValue;
+
+            if (!string.IsNullOrEmpty(databaseValue)) return databaseValue;
+            
             return defaultValue;
         }
     }

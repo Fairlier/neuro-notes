@@ -43,10 +43,12 @@ services:
       # === AI Configuration ===
       - AISettings__DefaultAIOperationLanguage=${AI_DEFAULT_OPERATION_LANGUAGE}
       - AISettings__DefaultTranscriptionProvider=${AI_DEFAULT_TRANSCRIPTION_PROVIDER}
-      - AISettings__DefaultChatProvider=${AI_DEFAULT_CHAT_PROVIDER}
+      - AISettings__DefaultGlobalChatProvider=${AI_DEFAULT_GLOBAL_CHAT_PROVIDER}
+      - AISettings__DefaultNoteChatProvider=${AI_DEFAULT_NOTE_CHAT_PROVIDER}
       - AISettings__DefaultStructureProvider=${AI_DEFAULT_STRUCTURE_PROVIDER}
       - AISettings__DefaultSummaryProvider=${AI_DEFAULT_SUMMARY_PROVIDER}
-      - AISettings__DefaultChatTemperature=${AI_DEFAULT_CHAT_TEMPERATURE}
+      - AISettings__DefaultGlobalChatTemperature=${AI_DEFAULT_GLOBAL_CHAT_TEMPERATURE}
+      - AISettings__DefaultNoteChatTemperature=${AI_DEFAULT_NOTE_CHAT_TEMPERATURE}
       - AISettings__DefaultStructureTemperature=${AI_DEFAULT_STRUCTURE_TEMPERATURE}
       - AISettings__DefaultSummaryTemperature=${AI_DEFAULT_SUMMARY_TEMPERATURE}
 
@@ -54,18 +56,21 @@ services:
       - AISettings__Gemini__StructureModel=${GEMINI_STRUCTURE_MODEL}
       - AISettings__Gemini__SummaryModel=${GEMINI_SUMMARY_MODEL}
       - AISettings__Gemini__TranscriptionModel=${GEMINI_TRANSCRIPTION_MODEL}
-      - AISettings__Gemini__ChatModel=${GEMINI_CHAT_MODEL}
+      - AISettings__Gemini__GlobalChatModel=${GEMINI_GLOBAL_CHAT_MODEL}
+      - AISettings__Gemini__NoteChatModel=${GEMINI_NOTE_CHAT_MODEL}
 
       - AISettings__Mistral__BaseUrl=${MISTRAL_BASE_URL}
       - AISettings__Mistral__StructureModel=${MISTRAL_STRUCTURE_MODEL}
       - AISettings__Mistral__SummaryModel=${MISTRAL_SUMMARY_MODEL}
       - AISettings__Mistral__TranscriptionModel=${MISTRAL_TRANSCRIPTION_MODEL}
-      - AISettings__Mistral__ChatModel=${MISTRAL_CHAT_MODEL}
+      - AISettings__Mistral__GlobalChatModel=${MISTRAL_GLOBAL_CHAT_MODEL}
+      - AISettings__Mistral__NoteChatModel=${MISTRAL_NOTE_CHAT_MODEL}
 
       - AISettings__OllamaLocal__BaseUrl=${OLLAMA_LOCAL_BASE_URL}
       - AISettings__OllamaLocal__StructureModel=${OLLAMA_LOCAL_STRUCTURE_MODEL}
       - AISettings__OllamaLocal__SummaryModel=${OLLAMA_LOCAL_SUMMARY_MODEL}
-      - AISettings__OllamaLocal__ChatModel=${OLLAMA_LOCAL_CHAT_MODEL}  
+      - AISettings__OllamaLocal__GlobalChatModel=${OLLAMA_LOCAL_GLOBAL_CHAT_MODEL}
+      - AISettings__OllamaLocal__NoteChatModel=${OLLAMA_LOCAL_NOTE_CHAT_MODEL} 
 
       - AISettings__VoskLocal__ModelsPath=${VOSK_LOCAL_MODELS_PATH}
       - AISettings__VoskLocal__LanguageMap__ru=${VOSK_LOCAL_MODEL_RU}
@@ -87,6 +92,24 @@ services:
         condition: service_healthy
       minio:
         condition: service_healthy
+
+  # # ==========================================
+  # # Service: Neuro Notes Web Client 
+  # # ==========================================
+  # neuro-notes-client:
+  #   container_name: neuro-notes-client
+  #   build:
+  #     context: ../neuro-notes-web-client
+  #     dockerfile: Dockerfile
+  #     args:
+  #       - VITE_API_URL=http://localhost:${API_PORT_EXTERNAL}/api
+  #   restart: unless-stopped
+  #   ports:
+  #     - "${CLIENT_PORT}:80"
+  #   depends_on:
+  #     - neuro-notes-api
+  #   networks:
+  #     - network
 
   # ==========================================
   # Service: PostgreSQL Database

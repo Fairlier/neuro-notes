@@ -10,11 +10,13 @@ namespace NeuroNotes.Application.Common.Options
         public TranscriptionProviderType DefaultTranscriptionProvider { get; set; }
         public StructureProviderType DefaultStructureProvider { get; set; }
         public SummaryProviderType DefaultSummaryProvider { get; set; }
-        public ChatProviderType DefaultChatProvider { get; set; }
+        public ChatProviderType DefaultGlobalChatProvider { get; set; }
+        public ChatProviderType DefaultNoteChatProvider { get; set; }
 
-        public double DefaultChatTemperature { get; set; } 
         public double DefaultStructureTemperature { get; set; } 
-        public double DefaultSummaryTemperature { get; set; } 
+        public double DefaultSummaryTemperature { get; set; }
+        public double DefaultGlobalChatTemperature { get; set; }
+        public double DefaultNoteChatTemperature { get; set; }
 
         public GeminiOptions Gemini { get; set; } = new();
         public VoskLocalOptions VoskLocal { get; set; } = new();
