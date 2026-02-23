@@ -13,7 +13,7 @@ using Pgvector;
 namespace NeuroNotes.Infrastructure.Persistence.Migrations
 {
     [DbContext(typeof(NeuroNotesDbContext))]
-    [Migration("20260222193142_InitialCreate")]
+    [Migration("20260223180701_InitialCreate")]
     partial class InitialCreate
     {
         /// <inheritdoc />
@@ -228,6 +228,9 @@ namespace NeuroNotes.Infrastructure.Persistence.Migrations
 
                     b.Property<string>("ErrorMessage")
                         .HasColumnType("text");
+
+                    b.Property<bool>("IsProcessing")
+                        .HasColumnType("boolean");
 
                     b.Property<string>("RawText")
                         .HasColumnType("text");

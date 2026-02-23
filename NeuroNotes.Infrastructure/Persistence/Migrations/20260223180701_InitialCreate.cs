@@ -86,6 +86,7 @@ namespace NeuroNotes.Infrastructure.Persistence.Migrations
                     StructuredText = table.Column<string>(type: "text", nullable: true),
                     SummaryText = table.Column<string>(type: "text", nullable: true),
                     Status = table.Column<string>(type: "text", nullable: false),
+                    IsProcessing = table.Column<bool>(type: "boolean", nullable: false),
                     CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
                     UpdatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: true)
                 },

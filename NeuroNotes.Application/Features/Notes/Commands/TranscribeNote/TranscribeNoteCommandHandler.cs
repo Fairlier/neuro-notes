@@ -5,14 +5,12 @@ using Microsoft.Extensions.Options;
 using NeuroNotes.Application.Common.Constants;
 using NeuroNotes.Application.Common.Exceptions;
 using NeuroNotes.Application.Common.Options;
-using NeuroNotes.Application.Interfaces.AI.Classification;
-using NeuroNotes.Application.Interfaces.AI.Embeddings;
 using NeuroNotes.Application.Interfaces.AI.Prompting;
 using NeuroNotes.Application.Interfaces.AI.Providers;
+using NeuroNotes.Application.Interfaces.BackgroundJobs;
 using NeuroNotes.Application.Interfaces.Files;
 using NeuroNotes.Application.Interfaces.Persistence;
 using NeuroNotes.Domain.Entities;
-using NeuroNotes.Domain.Enums;
 
 namespace NeuroNotes.Application.Features.Notes.Commands.TranscribeNote
 {
@@ -23,8 +21,7 @@ namespace NeuroNotes.Application.Features.Notes.Commands.TranscribeNote
         private readonly IAIProviderFactory _aiFactory;
         private readonly IPromptService _promptService;
         private readonly IMimeTypeDetector _mimeTypeDetector;
-        private readonly INoteEmbeddingGenerator _embeddingGenerator;
-        private readonly INoteCategoryClassifier _categoryClassifier;
+        private readonly IBackgroundJobService _backgroundJobService;
         private readonly AIOptions _aiOptions;
         private readonly ILogger<TranscribeNoteCommandHandler> _logger;
 
@@ -34,8 +31,7 @@ namespace NeuroNotes.Application.Features.Notes.Commands.TranscribeNote
             IAIProviderFactory aiFactory,
             IPromptService promptService,
             IMimeTypeDetector mimeTypeDetector,
-            INoteEmbeddingGenerator embeddingGenerator,
-            INoteCategoryClassifier categoryClassifier,
+            IBackgroundJobService backgroundJobService,
             IOptions<AIOptions> aiOptions,
             ILogger<TranscribeNoteCommandHandler> logger)
         {
@@ -44,8 +40,7 @@ namespace NeuroNotes.Application.Features.Notes.Commands.TranscribeNote
             _aiFactory = aiFactory;
             _promptService = promptService;
             _mimeTypeDetector = mimeTypeDetector;
-            _embeddingGenerator = embeddingGenerator;
-            _categoryClassifier = categoryClassifier;
+            _backgroundJobService = backgroundJobService;
             _aiOptions = aiOptions.Value;
             _logger = logger;
         }
@@ -66,6 +61,12 @@ namespace NeuroNotes.Application.Features.Notes.Commands.TranscribeNote
             _logger.LogInformation(
                 "Starts transcription process for Note {NoteId}. User: {UserId}", 
                 note.Id, note.UserId);
+
+            if (!note.IsProcessing)
+            {
+                note.StartProcessing();
+                await _context.SaveChangesAsync(cancellationToken);
+            }
 
             if (string.IsNullOrEmpty(note.SourceFileUrl))
             {
@@ -152,24 +153,18 @@ namespace NeuroNotes.Application.Features.Notes.Commands.TranscribeNote
                         cancellationToken);
 
                     note.SetRawText(rawText);
-
-                    _logger.LogInformation("Classifying category for Note {NoteId}.", note.Id);
-                    var (category, confidence) = await _categoryClassifier.ClassifyWithConfidenceAsync(
-                        rawText, cancellationToken);
-
-                    note.SetCategory(category);
-                    _logger.LogInformation(
-                        "Note {NoteId} classified as {Category} with confidence {Confidence:F4}.",
-                        note.Id, category, confidence);
-
+                    
                     await _context.SaveChangesAsync(cancellationToken);
 
-                    _logger.LogInformation("Updating embeddings for RawText of Note {NoteId}.", note.Id);
-                    await _embeddingGenerator.UpdateEmbeddingsForSourceAsync(
-                        note, NoteChunkSourceType.RawText, cancellationToken);
+                    _logger.LogInformation(
+                        "Transcription completed for Note {NoteId}. " +
+                        "Queuing for background processing.",
+                        note.Id);
+
+                    _backgroundJobService.EnqueueNoteProcessing(note.Id);
 
                     _logger.LogInformation(
-                        "Transcription completed successfully for Note {NoteId}.", 
+                        "Note {NoteId} queued for processing (classification + embeddings).",
                         note.Id);
                 }
             }

@@ -14,7 +14,8 @@ namespace NeuroNotes.Domain.Entities
             SourceType = sourceType;
             SourceFileUrl = sourceFileUrl;
 
-            Status = GetInitialStatus(sourceType);
+            Status = NoteStatus.Pending;
+            IsProcessing = true;
             CreatedAt = DateTime.UtcNow;
         }
 
@@ -32,15 +33,28 @@ namespace NeuroNotes.Domain.Entities
 
         public NoteStatus Status { get; private set; }
 
+        public bool IsProcessing { get; private set; }
 
-        private static NoteStatus GetInitialStatus(NoteSourceType sourceType)
+        public void StartProcessing()
         {
-            return sourceType switch
-            {
-                NoteSourceType.AudioFile => NoteStatus.Processing,
-                NoteSourceType.DirectText => NoteStatus.Raw,
-                _ => NoteStatus.Raw // TODO лучше тут что-нибудь придумать с исключениями
-            };
+            IsProcessing = true;
+            UpdatedAt = DateTime.UtcNow;
+            ErrorMessage = null;
+        }
+
+        public void FinishProcessing()
+        {
+            IsProcessing = false;
+            UpdatedAt = DateTime.UtcNow;
+            ErrorMessage = null;
+        }
+
+        public void FailProcessing(string error)
+        {
+            Status = NoteStatus.Failed;
+            IsProcessing = false;
+            UpdatedAt = DateTime.UtcNow;
+            ErrorMessage = error;
         }
 
         public void SetCategory(NoteCategory? category)
@@ -71,13 +85,6 @@ namespace NeuroNotes.Domain.Entities
             Status = NoteStatus.Summarized;
             UpdatedAt = DateTime.UtcNow;
             ErrorMessage = null;
-        }
-
-        public void FailProcessing(string error)
-        {
-            Status = NoteStatus.Failed;
-            ErrorMessage = error;
-            UpdatedAt = DateTime.UtcNow;
         }
 
         public void UpdateTitle(string title)

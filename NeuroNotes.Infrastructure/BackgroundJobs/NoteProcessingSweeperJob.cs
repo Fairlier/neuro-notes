@@ -10,7 +10,7 @@ namespace NeuroNotes.Infrastructure.BackgroundJobs
     {
         private readonly IServiceScopeFactory _scopeFactory;
         private readonly ILogger<NoteProcessingSweeperJob> _logger;
-        private const int ProcessingTimeoutMinutes = 60; // TODO
+        private const int ProcessingTimeoutMinutes = 60; 
 
         public NoteProcessingSweeperJob(
             IServiceScopeFactory scopeFactory,
@@ -33,20 +33,31 @@ namespace NeuroNotes.Infrastructure.BackgroundJobs
                     var context = scope.ServiceProvider.GetRequiredService<IApplicationDbContext>();
 
                     stuckNoteIds = await context.Notes
-                        .AsNoTracking() 
-                        .Where(n => n.Status == NoteStatus.Processing && n.UpdatedAt < timeoutThreshold)
+                        .AsNoTracking()
+                        .Where(n => n.IsProcessing && n.UpdatedAt < timeoutThreshold)
                         .Select(n => n.Id)
                         .ToListAsync(cancellationToken);
                 }
 
-                if (stuckNoteIds.Count == 0) return;
+                if (stuckNoteIds.Count == 0)
+                {
+                    _logger.LogDebug("No stuck notes found.");
+                    return;
+                }
 
-                _logger.LogInformation("Found {Count} stuck notes. Starting recovery...", stuckNoteIds.Count);
+                _logger.LogInformation(
+                    "Found {Count} stuck notes (IsProcessing=true for over {Minutes} min). Starting recovery...",
+                    stuckNoteIds.Count,
+                    ProcessingTimeoutMinutes);
 
                 foreach (var noteId in stuckNoteIds)
                 {
                     await ProcessSingleNoteSafeAsync(noteId, cancellationToken);
                 }
+
+                _logger.LogInformation(
+                    "Recovery completed for {Count} stuck notes.",
+                    stuckNoteIds.Count);
             }
             catch (Exception ex)
             {
@@ -64,8 +75,11 @@ namespace NeuroNotes.Infrastructure.BackgroundJobs
 
                 var note = await context.Notes.FirstOrDefaultAsync(n => n.Id == noteId, cancellationToken);
 
-                if (note == null || note.Status != NoteStatus.Processing)
+                if (note == null || !note.IsProcessing)
                 {
+                    _logger.LogDebug(
+                        "Note {NoteId} is no longer processing. Skipping.",
+                        noteId);
                     return;
                 }
 
@@ -73,11 +87,15 @@ namespace NeuroNotes.Infrastructure.BackgroundJobs
 
                 await context.SaveChangesAsync(cancellationToken);
 
-                _logger.LogWarning("Recovered stuck note {NoteId}. Status changed to Failed.", noteId);
+                _logger.LogWarning(
+                    "Recovered stuck note {NoteId}. " +
+                    "Status: {Status}, IsProcessing: {IsProcessing}, Error: timeout.",
+                    noteId, note.Status, note.IsProcessing);
             }
             catch (DbUpdateConcurrencyException)
             {
-                _logger.LogInformation("Concurrency conflict for note {NoteId}. Skipping recovery.", noteId);
+                _logger.LogInformation("Concurrency conflict for note {NoteId}. Skipping recovery.", 
+                    noteId);
             }
             catch (Exception ex)
             {

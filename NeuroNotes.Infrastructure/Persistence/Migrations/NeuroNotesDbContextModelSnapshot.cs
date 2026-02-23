@@ -226,6 +226,9 @@ namespace NeuroNotes.Infrastructure.Persistence.Migrations
                     b.Property<string>("ErrorMessage")
                         .HasColumnType("text");
 
+                    b.Property<bool>("IsProcessing")
+                        .HasColumnType("boolean");
+
                     b.Property<string>("RawText")
                         .HasColumnType("text");
 

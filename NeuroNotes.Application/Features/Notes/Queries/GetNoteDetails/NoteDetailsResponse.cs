@@ -17,6 +17,9 @@ namespace NeuroNotes.Application.Features.Notes.Queries.GetNoteDetails
         public string? SummaryText { get; set; }
 
         public string Status { get; set; } = string.Empty;
+        public bool IsProcessing { get; set; }
+        public string? ErrorMessage { get; set; }
+
         public DateTime CreatedAt { get; set; }
         public DateTime? UpdatedAt { get; set; }
 

@@ -1,6 +1,7 @@
 ﻿using Hangfire;
 using MediatR;
 using Microsoft.Extensions.Logging;
+using NeuroNotes.Application.Features.Notes.Commands.ProcessNote;
 using NeuroNotes.Application.Features.Notes.Commands.StructureNote;
 using NeuroNotes.Application.Features.Notes.Commands.SummarizeNote;
 using NeuroNotes.Application.Features.Notes.Commands.TranscribeNote;
@@ -67,6 +68,46 @@ namespace NeuroNotes.Infrastructure.BackgroundJobs
                 mediator => mediator.Send(new SummarizeNoteCommand(noteId), CancellationToken.None));
 
             _logger.LogInformation("Summary Generation job enqueued successfully. Hangfire JobId: {JobId}, NoteId: {NoteId}", jobId, noteId);
+        }
+
+        public void EnqueueNoteProcessing(Guid noteId)
+        {
+            if (noteId == Guid.Empty)
+            {
+                _logger.LogError("Attempted to enqueue Note Processing for empty NoteId.");
+                return;
+            }
+
+            _logger.LogInformation(
+                "Enqueuing Note Processing background job for Note {NoteId}...",
+                noteId);
+
+            var jobId = _backgroundJobClient.Enqueue<IMediator>(
+                mediator => mediator.Send(new ProcessNoteCommand(noteId), CancellationToken.None));
+
+            _logger.LogInformation(
+                "Note Processing job enqueued successfully. Hangfire JobId: {JobId}, NoteId: {NoteId}",
+                jobId, noteId);
+        }
+
+        public void EnqueueNoteReprocessing(Guid noteId)
+        {
+            if (noteId == Guid.Empty)
+            {
+                _logger.LogError("Attempted to enqueue Note Reprocessing for empty NoteId.");
+                return;
+            }
+
+            _logger.LogInformation(
+                "Enqueuing Note Reprocessing background job for Note {NoteId}...",
+                noteId);
+
+            var jobId = _backgroundJobClient.Enqueue<IMediator>(
+                mediator => mediator.Send(new ProcessNoteCommand(noteId), CancellationToken.None));
+
+            _logger.LogInformation(
+                "Note Reprocessing job enqueued successfully. Hangfire JobId: {JobId}, NoteId: {NoteId}",
+                jobId, noteId);
         }
     }
 }

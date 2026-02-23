@@ -1,7 +1,6 @@
 ﻿using MediatR;
 using Microsoft.Extensions.Logging;
-using NeuroNotes.Application.Interfaces.AI.Classification;
-using NeuroNotes.Application.Interfaces.AI.Embeddings;
+using NeuroNotes.Application.Interfaces.BackgroundJobs;
 using NeuroNotes.Application.Interfaces.Identity;
 using NeuroNotes.Application.Interfaces.Persistence;
 using NeuroNotes.Domain.Entities;
@@ -13,21 +12,18 @@ namespace NeuroNotes.Application.Features.Notes.Commands.CreateNote.DirectText
     {
         private readonly IApplicationDbContext _context;
         private readonly ICurrentUserService _currentUserService;
-        private readonly INoteEmbeddingGenerator _embeddingGenerator;
-        private readonly INoteCategoryClassifier _categoryClassifier;
+        private readonly IBackgroundJobService _backgroundJobService;
         private readonly ILogger<CreateNoteFromDirectTextCommandHandler> _logger;
 
         public CreateNoteFromDirectTextCommandHandler(
             IApplicationDbContext context,
             ICurrentUserService currentUserService,
-            INoteEmbeddingGenerator embeddingGenerator,
-            INoteCategoryClassifier categoryClassifier,
+            IBackgroundJobService backgroundJobService,
             ILogger<CreateNoteFromDirectTextCommandHandler> logger)
         {
             _context = context;
             _currentUserService = currentUserService;
-            _embeddingGenerator = embeddingGenerator;
-            _categoryClassifier = categoryClassifier;
+            _backgroundJobService = backgroundJobService;
             _logger = logger;
         }
 
@@ -49,23 +45,17 @@ namespace NeuroNotes.Application.Features.Notes.Commands.CreateNote.DirectText
 
             note.SetRawText(request.Content);
 
-            _logger.LogInformation("Classifying category for new note.");
-            var (category, confidence) = await _categoryClassifier.ClassifyWithConfidenceAsync(
-                request.Content, cancellationToken);
-
-            note.SetCategory(category);
-            _logger.LogInformation(
-                "Note classified as {Category} with confidence {Confidence:F4}.",
-                category, confidence);
-
             await _context.Notes.AddAsync(note, cancellationToken);
             await _context.SaveChangesAsync(cancellationToken);
 
-            _logger.LogInformation("Generating embeddings for Note {NoteId}.", note.Id);
-            await _embeddingGenerator.GenerateAndSaveEmbeddingsAsync(note, cancellationToken);
+            _logger.LogInformation(
+                "Note {NoteId} saved to database with Status: {Status}.",
+                note.Id, note.Status);
+
+            _backgroundJobService.EnqueueNoteProcessing(note.Id);
 
             _logger.LogInformation(
-                "Note created successfully. Id: {NoteId}", 
+                "Note {NoteId} queued for background processing (classification + embeddings).",
                 note.Id);
 
             return new CreateNoteResponse { Id = note.Id };

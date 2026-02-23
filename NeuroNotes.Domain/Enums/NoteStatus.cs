@@ -2,8 +2,8 @@
 namespace NeuroNotes.Domain.Enums
 {
     public enum NoteStatus
-    { 
-        Processing,      
+    {
+        Pending,      
         Failed,         
 
         Raw,             
