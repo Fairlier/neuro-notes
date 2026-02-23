@@ -5,6 +5,7 @@ using Microsoft.Extensions.Options;
 using NeuroNotes.Application.Common.Constants;
 using NeuroNotes.Application.Common.Exceptions;
 using NeuroNotes.Application.Common.Options;
+using NeuroNotes.Application.Interfaces.AI.Classification;
 using NeuroNotes.Application.Interfaces.AI.Embeddings;
 using NeuroNotes.Application.Interfaces.AI.Prompting;
 using NeuroNotes.Application.Interfaces.AI.Providers;
@@ -23,6 +24,7 @@ namespace NeuroNotes.Application.Features.Notes.Commands.TranscribeNote
         private readonly IPromptService _promptService;
         private readonly IMimeTypeDetector _mimeTypeDetector;
         private readonly INoteEmbeddingGenerator _embeddingGenerator;
+        private readonly INoteCategoryClassifier _categoryClassifier;
         private readonly AIOptions _aiOptions;
         private readonly ILogger<TranscribeNoteCommandHandler> _logger;
 
@@ -33,6 +35,7 @@ namespace NeuroNotes.Application.Features.Notes.Commands.TranscribeNote
             IPromptService promptService,
             IMimeTypeDetector mimeTypeDetector,
             INoteEmbeddingGenerator embeddingGenerator,
+            INoteCategoryClassifier categoryClassifier,
             IOptions<AIOptions> aiOptions,
             ILogger<TranscribeNoteCommandHandler> logger)
         {
@@ -42,6 +45,7 @@ namespace NeuroNotes.Application.Features.Notes.Commands.TranscribeNote
             _promptService = promptService;
             _mimeTypeDetector = mimeTypeDetector;
             _embeddingGenerator = embeddingGenerator;
+            _categoryClassifier = categoryClassifier;
             _aiOptions = aiOptions.Value;
             _logger = logger;
         }
@@ -148,6 +152,16 @@ namespace NeuroNotes.Application.Features.Notes.Commands.TranscribeNote
                         cancellationToken);
 
                     note.SetRawText(rawText);
+
+                    _logger.LogInformation("Classifying category for Note {NoteId}.", note.Id);
+                    var (category, confidence) = await _categoryClassifier.ClassifyWithConfidenceAsync(
+                        rawText, cancellationToken);
+
+                    note.SetCategory(category);
+                    _logger.LogInformation(
+                        "Note {NoteId} classified as {Category} with confidence {Confidence:F4}.",
+                        note.Id, category, confidence);
+
                     await _context.SaveChangesAsync(cancellationToken);
 
                     _logger.LogInformation("Updating embeddings for RawText of Note {NoteId}.", note.Id);

@@ -13,7 +13,7 @@ using Pgvector;
 namespace NeuroNotes.Infrastructure.Persistence.Migrations
 {
     [DbContext(typeof(NeuroNotesDbContext))]
-    [Migration("20260222111852_InitialCreate")]
+    [Migration("20260222193142_InitialCreate")]
     partial class InitialCreate
     {
         /// <inheritdoc />

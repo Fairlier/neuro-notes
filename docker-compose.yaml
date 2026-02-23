@@ -15,6 +15,7 @@ services:
       - network
     volumes:
       - ${VOSK_LOCAL_MODELS_HOST_PATH}:${VOSK_LOCAL_MODELS_PATH}
+      - ${CATEGORY_CLASSIFIER_HOST_PATH}:${CATEGORY_CLASSIFIER_CONTAINER_PATH}:ro
     environment:
       - ASPNETCORE_ENVIRONMENT=${ASPNETCORE_ENVIRONMENT}
       - AllowedCorsOrigins=${CORS_ALLOWED_ORIGINS}
@@ -76,12 +77,19 @@ services:
       - AISettings__VoskLocal__LanguageMap__ru=${VOSK_LOCAL_MODEL_RU}
       - AISettings__VoskLocal__LanguageMap__en=${VOSK_LOCAL_MODEL_EN}
 
+      # === Embedding Configuration ===
       - EmbeddingSettings__DefaultEmbeddingProvider=${EMBEDDING_DEFAULT_PROVIDER}
       - EmbeddingSettings__GemmaLocal__BaseUrl=${EMBEDDING_BASE_URL}
       - EmbeddingSettings__GemmaLocal__EmbeddingModel=${EMBEDDING_MODEL}
       - EmbeddingSettings__GemmaLocal__Dimensions=${EMBEDDING_DIMENSIONS}
       - EmbeddingSettings__GemmaLocal__MaxCosineDistance=${EMBEDDING_MAX_COSINE_DISTANCE}
       - EmbeddingSettings__GemmaLocal__SearchResultLimit=${EMBEDDING_SEARCH_RESULT_LIMIT}
+
+      # === Category Classifier Configuration ===
+      - CategoryClassifier__ModelPath=${CATEGORY_CLASSIFIER_MODEL_PATH}
+      - CategoryClassifier__VocabPath=${CATEGORY_CLASSIFIER_VOCAB_PATH}
+      - CategoryClassifier__MinConfidenceThreshold=${CATEGORY_CLASSIFIER_MIN_CONFIDENCE}
+      - CategoryClassifier__MaxSequenceLength=${CATEGORY_CLASSIFIER_MAX_SEQ_LENGTH}
 
       # === Hangfire Configuration ===
       - Hangfire__User=${HANGFIRE_USER}

@@ -2,6 +2,7 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using NeuroNotes.Application.Common.Exceptions;
+using NeuroNotes.Application.Interfaces.AI.Classification;
 using NeuroNotes.Application.Interfaces.AI.Embeddings;
 using NeuroNotes.Application.Interfaces.Identity;
 using NeuroNotes.Application.Interfaces.Persistence;
@@ -15,17 +16,20 @@ namespace NeuroNotes.Application.Features.Notes.Commands.UpdateNote
         private readonly IApplicationDbContext _context;
         private readonly ICurrentUserService _currentUserService;
         private readonly INoteEmbeddingGenerator _embeddingGenerator;
+        private readonly INoteCategoryClassifier _categoryClassifier;
         private readonly ILogger<UpdateNoteCommandHandler> _logger;
 
         public UpdateNoteCommandHandler(
             IApplicationDbContext context,
             ICurrentUserService currentUserService,
             INoteEmbeddingGenerator embeddingGenerator,
+            INoteCategoryClassifier categoryClassifier,
             ILogger<UpdateNoteCommandHandler> logger)
         {
             _context = context;
             _currentUserService = currentUserService;
             _embeddingGenerator = embeddingGenerator;
+            _categoryClassifier = categoryClassifier;
             _logger = logger;
         }
 
@@ -54,6 +58,7 @@ namespace NeuroNotes.Application.Features.Notes.Commands.UpdateNote
             }
 
             var chunksToUpdate = new List<NoteChunkSourceType>();
+            bool rawTextChanged = false;
 
             if (request.Title != null && entity.Title != request.Title)
             {
@@ -65,6 +70,7 @@ namespace NeuroNotes.Application.Features.Notes.Commands.UpdateNote
             {
                 entity.UpdateRawText(request.RawText);
                 chunksToUpdate.Add(NoteChunkSourceType.RawText);
+                rawTextChanged = true;
             }
 
             if (request.StructuredText != null && entity.StructuredText != request.StructuredText)
@@ -77,6 +83,27 @@ namespace NeuroNotes.Application.Features.Notes.Commands.UpdateNote
             {
                 entity.UpdateSummaryText(request.SummaryText);
                 chunksToUpdate.Add(NoteChunkSourceType.SummaryText);
+            }
+
+            if (request.Category.HasValue)
+            {
+                entity.SetCategory(request.Category.Value);
+                _logger.LogInformation(
+                    "Note {NoteId} category manually set to {Category}.",
+                    request.Id, request.Category.Value);
+            }
+            else if (rawTextChanged && !string.IsNullOrWhiteSpace(request.RawText))
+            {
+                _logger.LogInformation("Reclassifying category for Note {NoteId}.", request.Id);
+
+                var (category, confidence) = await _categoryClassifier.ClassifyWithConfidenceAsync(
+                    request.RawText, cancellationToken);
+
+                entity.SetCategory(category);
+
+                _logger.LogInformation(
+                    "Note {NoteId} reclassified as {Category} with confidence {Confidence:F4}.",
+                    request.Id, category, confidence);
             }
 
             await _context.SaveChangesAsync(cancellationToken);

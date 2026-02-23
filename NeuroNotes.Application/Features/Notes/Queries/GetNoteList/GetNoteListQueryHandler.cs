@@ -43,7 +43,7 @@ namespace NeuroNotes.Application.Features.Notes.Queries.GetNoteList
             var notes = await _context.Notes
                 .AsNoTracking()
                 .Where(n => n.UserId == userId)
-                .OrderByDescending(n => n.CreatedAt)
+                .OrderByDescending(n => n.UpdatedAt ?? n.CreatedAt)
                 .ProjectTo<NoteListItemDto>(_mapper.ConfigurationProvider)
                 .ToListAsync(cancellationToken);
 

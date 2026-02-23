@@ -1,5 +1,6 @@
 ﻿using MediatR;
 using Microsoft.Extensions.Logging;
+using NeuroNotes.Application.Interfaces.AI.Classification;
 using NeuroNotes.Application.Interfaces.AI.Embeddings;
 using NeuroNotes.Application.Interfaces.Identity;
 using NeuroNotes.Application.Interfaces.Persistence;
@@ -13,17 +14,20 @@ namespace NeuroNotes.Application.Features.Notes.Commands.CreateNote.DirectText
         private readonly IApplicationDbContext _context;
         private readonly ICurrentUserService _currentUserService;
         private readonly INoteEmbeddingGenerator _embeddingGenerator;
+        private readonly INoteCategoryClassifier _categoryClassifier;
         private readonly ILogger<CreateNoteFromDirectTextCommandHandler> _logger;
 
         public CreateNoteFromDirectTextCommandHandler(
             IApplicationDbContext context,
             ICurrentUserService currentUserService,
             INoteEmbeddingGenerator embeddingGenerator,
+            INoteCategoryClassifier categoryClassifier,
             ILogger<CreateNoteFromDirectTextCommandHandler> logger)
         {
             _context = context;
             _currentUserService = currentUserService;
             _embeddingGenerator = embeddingGenerator;
+            _categoryClassifier = categoryClassifier;
             _logger = logger;
         }
 
@@ -44,6 +48,15 @@ namespace NeuroNotes.Application.Features.Notes.Commands.CreateNote.DirectText
             var note = new Note(request.Title, userId, NoteSourceType.DirectText);
 
             note.SetRawText(request.Content);
+
+            _logger.LogInformation("Classifying category for new note.");
+            var (category, confidence) = await _categoryClassifier.ClassifyWithConfidenceAsync(
+                request.Content, cancellationToken);
+
+            note.SetCategory(category);
+            _logger.LogInformation(
+                "Note classified as {Category} with confidence {Confidence:F4}.",
+                category, confidence);
 
             await _context.Notes.AddAsync(note, cancellationToken);
             await _context.SaveChangesAsync(cancellationToken);

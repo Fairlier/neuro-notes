@@ -2,10 +2,12 @@
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using NeuroNotes.Application.Common.Options;
+using NeuroNotes.Application.Interfaces.AI.Classification;
 using NeuroNotes.Application.Interfaces.AI.Context;
 using NeuroNotes.Application.Interfaces.AI.Embeddings;
 using NeuroNotes.Application.Interfaces.AI.Prompting;
 using NeuroNotes.Application.Interfaces.AI.Providers;
+using NeuroNotes.Infrastructure.AI.Classification;
 using NeuroNotes.Infrastructure.AI.Context;
 using NeuroNotes.Infrastructure.AI.Embeddings;
 using NeuroNotes.Infrastructure.AI.Prompting;
@@ -69,6 +71,11 @@ namespace NeuroNotes.Infrastructure.Extensions
             services.AddScoped<INoteEmbeddingGenerator, NoteEmbeddingGenerator>();
 
             services.AddScoped<IRagService, RagService>();
+
+            services.Configure<CategoryClassifierOptions>(
+                configuration.GetSection(CategoryClassifierOptions.SectionName));
+
+            services.AddSingleton<INoteCategoryClassifier, NoteCategoryClassifier>();
 
             return services;
         }

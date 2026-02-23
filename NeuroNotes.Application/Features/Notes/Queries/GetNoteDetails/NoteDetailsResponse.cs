@@ -10,6 +10,7 @@ namespace NeuroNotes.Application.Features.Notes.Queries.GetNoteDetails
         public Guid Id { get; set; }
         public string Title { get; set; } = string.Empty;
         public string SourceType { get; set; } = string.Empty;
+        public string? Category { get; set; }
 
         public string? RawText { get; set; }
         public string? StructuredText { get; set; }
@@ -23,7 +24,8 @@ namespace NeuroNotes.Application.Features.Notes.Queries.GetNoteDetails
         {
             profile.CreateMap<Note, NoteDetailsResponse>()
                 .ForMember(dest => dest.Status, opt => opt.MapFrom(src => src.Status.ToString()))
-                .ForMember(dest => dest.SourceType, opt => opt.MapFrom(src => src.SourceType.ToString()));
+                .ForMember(dest => dest.SourceType, opt => opt.MapFrom(src => src.SourceType.ToString()))
+                .ForMember(dest => dest.Category, opt => opt.MapFrom(src => src.Category != null ? src.Category.ToString() : null));
         }
     }
 }

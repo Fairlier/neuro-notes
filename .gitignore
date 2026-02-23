@@ -364,3 +364,6 @@ FodyWeavers.xsd
 
 /NeuroNotes.Infrastructure/Resources/Models/Vosk/*
 !NeuroNotes.Infrastructure/Resources/Models/Vosk/.gitkeep
+
+/NeuroNotes.Infrastructure/Resources/Models/CategoryClassifier/*
+!NeuroNotes.Infrastructure/Resources/Models/CategoryClassifier/.gitkeep
