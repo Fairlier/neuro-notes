@@ -110,7 +110,7 @@ namespace NeuroNotes.Infrastructure.AI.Context
                     _options.GemmaLocal.SearchResultLimit,
                     _options.GemmaLocal.MaxCosineDistance
                 ),
-                _ => (5, 0.7)
+                _ => (5, 0.8)
             };
         }
     }

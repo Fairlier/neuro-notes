@@ -77,6 +77,8 @@ namespace NeuroNotes.Infrastructure.Extensions
 
             services.AddSingleton<INoteCategoryClassifier, NoteCategoryClassifier>();
 
+            services.AddScoped<INoteSearchService, NoteSearchService>();
+
             return services;
         }
     }
