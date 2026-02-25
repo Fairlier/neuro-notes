@@ -20,7 +20,12 @@ namespace NeuroNotes.Application.Features.Notes.Commands.CreateNote.AudioFile
             RuleFor(v => v.FileName)
                 .NotEmpty().WithMessage("File name is required.")
                 .Must(HaveValidExtension)
-                .WithMessage($"Invalid file extension. Allowed: {FileConstants.GetSupportedExtensionsString()}");
+                .WithMessage($"Invalid file extension. Allowed: {FileConstants.GetSupportedAudioExtensionsString()}");
+
+            RuleFor(v => v.ContentType)
+                .NotEmpty().WithMessage("Content type is required.")
+                .Must(ct => FileConstants.SupportedAudioContentTypes.Contains(ct.ToLowerInvariant()))
+                .WithMessage($"Invalid content type. Allowed: {FileConstants.GetSupportedAudioContentTypesString()}");
         }
 
         private bool HaveValidExtension(string fileName)

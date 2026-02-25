@@ -35,6 +35,8 @@ namespace NeuroNotes.Infrastructure.Extensions
 
             services.AddTransient<NoteProcessingSweeperJob>();
 
+            services.AddTransient<OrphanedFilesCleanupJob>();
+
             return services;
         }
     }

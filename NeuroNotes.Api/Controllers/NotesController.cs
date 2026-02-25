@@ -10,6 +10,7 @@ using NeuroNotes.Application.Features.Notes.Commands.TranscribeNote;
 using NeuroNotes.Application.Features.Notes.Commands.UpdateNote;
 using NeuroNotes.Application.Features.Notes.Queries.GetNoteDetails;
 using NeuroNotes.Application.Features.Notes.Queries.GetNoteList;
+using NeuroNotes.Application.Features.Notes.Queries.GetNoteSourceFile;
 using NeuroNotes.Domain.Enums;
 
 namespace NeuroNotes.Api.Controllers
@@ -188,6 +189,39 @@ namespace NeuroNotes.Api.Controllers
         {
             await Mediator.Send(new SummarizeNoteCommand(id));
             return NoContent();
+        }
+
+        /// <summary>
+        /// Получить исходный файл заметки (аудио, документ и т.д.)
+        /// </summary>
+        /// <param name="id">ID заметки</param>
+        /// <param name="download">Если true — скачивание, иначе inline воспроизведение</param>
+        /// <returns>Исходный файл</returns>
+        [HttpGet("{id:guid}/file")]
+        [ProducesResponseType(typeof(FileStreamResult), StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public async Task<IActionResult> GetSourceFile(
+            Guid id,
+            [FromQuery] bool download = false,
+            CancellationToken cancellationToken = default)
+        {
+            var result = await Mediator.Send(new GetNoteSourceFileQuery(id), cancellationToken);
+
+            Response.Headers.ContentLength = result.Stream.Length;
+
+            if (download)
+            {
+                return File(
+                    result.Stream,
+                    result.ContentType,
+                    result.FileName,
+                    enableRangeProcessing: true);
+            }
+
+            return File(
+                result.Stream,
+                result.ContentType,
+                enableRangeProcessing: true);
         }
     }
 }

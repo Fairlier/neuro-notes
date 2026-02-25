@@ -1,7 +1,6 @@
 ﻿using AutoMapper;
 using NeuroNotes.Application.Common.Mappings;
 using NeuroNotes.Domain.Entities;
-using NeuroNotes.Domain.Enums;
 
 namespace NeuroNotes.Application.Features.Notes.Queries.GetNoteDetails
 {
@@ -23,12 +22,15 @@ namespace NeuroNotes.Application.Features.Notes.Queries.GetNoteDetails
         public DateTime CreatedAt { get; set; }
         public DateTime? UpdatedAt { get; set; }
 
+        public bool HasSourceFile { get; set; }
+
         public void Mapping(Profile profile)
         {
             profile.CreateMap<Note, NoteDetailsResponse>()
                 .ForMember(dest => dest.Status, opt => opt.MapFrom(src => src.Status.ToString()))
                 .ForMember(dest => dest.SourceType, opt => opt.MapFrom(src => src.SourceType.ToString()))
-                .ForMember(dest => dest.Category, opt => opt.MapFrom(src => src.Category != null ? src.Category.ToString() : null));
+                .ForMember(dest => dest.Category, opt => opt.MapFrom(src => src.Category != null ? src.Category.ToString() : null))
+                .ForMember(dest => dest.HasSourceFile, opt => opt.MapFrom(src => !string.IsNullOrEmpty(src.SourceFileUrl)));
         }
     }
 }

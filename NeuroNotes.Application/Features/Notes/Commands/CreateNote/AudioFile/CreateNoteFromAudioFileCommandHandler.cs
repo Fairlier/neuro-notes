@@ -65,7 +65,7 @@ namespace NeuroNotes.Application.Features.Notes.Commands.CreateNote.AudioFile
 
                 throw new ArgumentException(
                     $"Invalid audio file signature. Actual content does not match supported formats: " +
-                    $"{FileConstants.GetSupportedExtensionsString()}.");
+                    $"{FileConstants.GetSupportedAudioExtensionsString()}.");
             }
 
             request.FileStream.Position = 0;

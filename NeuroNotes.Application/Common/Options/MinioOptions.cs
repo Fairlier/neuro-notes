@@ -9,7 +9,9 @@ namespace NeuroNotes.Application.Common.Options
         public string Endpoint { get; set; } = string.Empty; 
         public string AccessKey { get; set; } = string.Empty; 
         public string SecretKey { get; set; } = string.Empty;
-        public string BucketName { get; set; } = string.Empty;
         public bool WithSSL { get; set; } = false;
+        public string PrivateBucketName { get; set; } = string.Empty;
+        public string PublicBucketName { get; set; } = string.Empty;
+        public string PublicBaseUrl { get; set; } = string.Empty;
     }
 }

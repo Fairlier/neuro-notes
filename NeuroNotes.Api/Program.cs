@@ -152,4 +152,9 @@ RecurringJob.AddOrUpdate<NoteProcessingSweeperJob>(
     job => job.ExecuteAsync(CancellationToken.None),
     Cron.MinuteInterval(5));
 
+RecurringJob.AddOrUpdate<OrphanedFilesCleanupJob>(
+    "orphaned-files-cleanup",
+    job => job.ExecuteAsync(CancellationToken.None),
+    Cron.Daily(3, 0));
+
 app.Run();

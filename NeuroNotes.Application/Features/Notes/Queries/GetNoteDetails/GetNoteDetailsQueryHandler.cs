@@ -12,33 +12,37 @@ namespace NeuroNotes.Application.Features.Notes.Queries.GetNoteDetails
     public class GetNoteDetailsQueryHandler : IRequestHandler<GetNoteDetailsQuery, NoteDetailsResponse>
     {
         private readonly IApplicationDbContext _context;
-        private readonly IMapper _mapper;
         private readonly ICurrentUserService _currentUserService;
+        private readonly IMapper _mapper;
         private readonly ILogger<GetNoteDetailsQueryHandler> _logger;
 
         public GetNoteDetailsQueryHandler(
             IApplicationDbContext context,
-            IMapper mapper,
             ICurrentUserService currentUserService,
+            IMapper mapper,
             ILogger<GetNoteDetailsQueryHandler> logger)
         {
             _context = context;
-            _mapper = mapper;
             _currentUserService = currentUserService;
+            _mapper = mapper;
             _logger = logger;
         }
 
-        public async Task<NoteDetailsResponse> Handle(GetNoteDetailsQuery request, CancellationToken cancellationToken)
+        public async Task<NoteDetailsResponse> Handle(
+            GetNoteDetailsQuery request,
+            CancellationToken cancellationToken)
         {
             var userId = _currentUserService.UserId;
 
             if (string.IsNullOrEmpty(userId))
             {
-                _logger.LogWarning("Unauthorized access attempt. User is not authenticated.");
-                throw new UnauthorizedAccessException("User is not authorized");
+                _logger.LogWarning("Unauthorized access attempt in GetNoteDetails.");
+                throw new UnauthorizedAccessException("User is not authenticated.");
             }
 
-            _logger.LogInformation("Retrieving note details for Note {NoteId}. User: {UserId}", request.Id, userId);
+            _logger.LogInformation(
+                "Retrieving note details for Note {NoteId}, User {UserId}.",
+                request.Id, userId);
 
             var note = await _context.Notes
                 .AsNoTracking()
@@ -46,13 +50,15 @@ namespace NeuroNotes.Application.Features.Notes.Queries.GetNoteDetails
 
             if (note is null)
             {
-                _logger.LogWarning("Failed to retrieve note details. Reason: Note {NoteId} not found for User {UserId}.", request.Id, userId);
+                _logger.LogWarning("Note {NoteId} not found for User {UserId}.", request.Id, userId);
                 throw new NotFoundException(nameof(Note), request.Id);
             }
 
-            _logger.LogInformation("Retrieved note details successfully for Note {NoteId}.", request.Id);
+            var response = _mapper.Map<NoteDetailsResponse>(note);
 
-            return _mapper.Map<NoteDetailsResponse>(note);
+            _logger.LogInformation("Note details retrieved for Note {NoteId}.", note.Id);
+
+            return response;
         }
     }
 }

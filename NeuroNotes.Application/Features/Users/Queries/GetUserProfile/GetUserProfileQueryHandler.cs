@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using NeuroNotes.Application.Common.Options;
+using NeuroNotes.Application.Interfaces.Files;
 using NeuroNotes.Application.Interfaces.Identity;
 using NeuroNotes.Application.Interfaces.Persistence;
 
@@ -13,13 +14,13 @@ namespace NeuroNotes.Application.Features.Users.Queries.GetUserProfile
         private readonly IApplicationDbContext _context;
         private readonly ICurrentUserService _currentUserService;
         private readonly AppDefaultsOptions _defaults;
-        private readonly ILogger<GetUserProfileQueryHandler> _logger; 
+        private readonly ILogger<GetUserProfileQueryHandler> _logger;
 
         public GetUserProfileQueryHandler(
             IApplicationDbContext context,
             ICurrentUserService currentUserService,
             IOptions<AppDefaultsOptions> defaults,
-            ILogger<GetUserProfileQueryHandler> logger) 
+            ILogger<GetUserProfileQueryHandler> logger)
         {
             _context = context;
             _currentUserService = currentUserService;
@@ -36,9 +37,7 @@ namespace NeuroNotes.Application.Features.Users.Queries.GetUserProfile
                 throw new UnauthorizedAccessException("User is not authenticated.");
             }
 
-            _logger.LogInformation(
-                "Starts retrieving user profile for User {UserId}.", 
-                userId);
+            _logger.LogInformation("Retrieving user profile for User {UserId}.", userId);
 
             var entity = await _context.UserProfiles
                 .AsNoTracking()
@@ -46,14 +45,13 @@ namespace NeuroNotes.Application.Features.Users.Queries.GetUserProfile
 
             if (entity is null)
             {
-                _logger.LogInformation(
-                    "User profile not found for User {UserId}. Returning default values.", 
-                    userId);
+                _logger.LogInformation("User profile not found for User {UserId}. Returning default values.", userId);
 
                 return new UserProfileResponse
                 {
                     Nickname = "User",
-                    InterfaceLanguage = _defaults.DefaultInterfaceLanguage
+                    InterfaceLanguage = _defaults.DefaultInterfaceLanguage,
+                    AvatarUrl = null
                 };
             }
 
@@ -65,14 +63,13 @@ namespace NeuroNotes.Application.Features.Users.Queries.GetUserProfile
                 ? entity.Nickname
                 : "User";
 
-            _logger.LogInformation(
-                "User profile retrieved successfully for User {UserId}.", 
-                userId);
+            _logger.LogInformation("User profile retrieved for User {UserId}.", userId);
 
             return new UserProfileResponse
             {
                 Nickname = nickname,
-                InterfaceLanguage = language
+                InterfaceLanguage = language,
+                AvatarUrl = entity.AvatarUrl
             };
         }
     }

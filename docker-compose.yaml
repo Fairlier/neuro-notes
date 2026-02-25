@@ -38,8 +38,10 @@ services:
       - MinioSettings__Endpoint=${MINIO_HOST}:${MINIO_API_PORT}
       - MinioSettings__AccessKey=${MINIO_ROOT_USER}
       - MinioSettings__SecretKey=${MINIO_ROOT_PASSWORD}
-      - MinioSettings__BucketName=${MINIO_BUCKET_NAME}
       - MinioSettings__WithSSL=${MINIO_WITH_SSL}
+      - MinioSettings__PrivateBucketName=${MINIO_PRIVATE_BUCKET_NAME}
+      - MinioSettings__PublicBucketName=${MINIO_PUBLIC_BUCKET_NAME}
+      - MinioSettings__PublicBaseUrl=http://${MINIO_PUBLIC_HOST}:${MINIO_API_PORT}/${MINIO_PUBLIC_BUCKET_NAME}
 
       # === AI Configuration ===
       - AISettings__DefaultAIOperationLanguage=${AI_DEFAULT_OPERATION_LANGUAGE}

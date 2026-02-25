@@ -1,7 +1,9 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using NeuroNotes.Application.Features.Users.Commands.DeleteAvatar;
 using NeuroNotes.Application.Features.Users.Commands.UpdateUserAIProfile;
 using NeuroNotes.Application.Features.Users.Commands.UpdateUserProfile;
+using NeuroNotes.Application.Features.Users.Commands.UploadAvatar;
 using NeuroNotes.Application.Features.Users.Queries.GetUserAIProfile;
 using NeuroNotes.Application.Features.Users.Queries.GetUserProfile;
 
@@ -32,6 +34,45 @@ namespace NeuroNotes.Api.Controllers
         public async Task<IActionResult> UpdateProfile([FromBody] UpdateUserProfileCommand command)
         {
             await Mediator.Send(command);
+            return NoContent();
+        }
+
+        /// <summary>
+        /// Загрузить или обновить аватар пользователя
+        /// </summary>
+        /// <param name="file">Изображение (JPEG, PNG, GIF, WebP, макс. 10MB)</param>
+        [HttpPost("avatar")]
+        [Consumes("multipart/form-data")]
+        [ProducesResponseType(typeof(UploadAvatarDto), StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        public async Task<ActionResult<UploadAvatarDto>> UploadAvatar(IFormFile file)
+        {
+            if (file == null || file.Length == 0)
+            {
+                return BadRequest("File is required.");
+            }
+
+            using var stream = file.OpenReadStream();
+
+            var command = new UploadAvatarCommand
+            {
+                FileStream = stream,
+                FileName = file.FileName,
+                ContentType = file.ContentType
+            };
+
+            var result = await Mediator.Send(command);
+            return Ok(result);
+        }
+
+        /// <summary>
+        /// Удалить аватар пользователя
+        /// </summary>
+        [HttpDelete("avatar")]
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
+        public async Task<IActionResult> DeleteAvatar()
+        {
+            await Mediator.Send(new DeleteAvatarCommand());
             return NoContent();
         }
 
