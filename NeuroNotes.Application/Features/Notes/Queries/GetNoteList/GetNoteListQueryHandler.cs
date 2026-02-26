@@ -164,6 +164,11 @@ namespace NeuroNotes.Application.Features.Notes.Queries.GetNoteList
                 query = query.Where(n => n.Status == request.Status.Value);
             }
 
+            if (request.SourceType.HasValue)
+            {
+                query = query.Where(n => n.SourceType == request.SourceType.Value);
+            }
+
             if (request.Category.HasValue)
             {
                 query = query.Where(n => n.Category == request.Category.Value);
@@ -210,6 +215,10 @@ namespace NeuroNotes.Application.Features.Notes.Queries.GetNoteList
                 NoteSortBy.Status => direction == SortDirection.Ascending
                     ? query.OrderBy(n => n.Status)
                     : query.OrderByDescending(n => n.Status),
+
+                NoteSortBy.SourceType => direction == SortDirection.Ascending
+                    ? query.OrderBy(n => n.SourceType)
+                    : query.OrderByDescending(n => n.SourceType),
 
                 NoteSortBy.Category => direction == SortDirection.Ascending
                     ? query.OrderBy(n => n.Category)

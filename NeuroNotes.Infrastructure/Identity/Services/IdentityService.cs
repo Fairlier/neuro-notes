@@ -155,5 +155,31 @@ namespace NeuroNotes.Infrastructure.Identity.Services
                 RefreshToken = refreshToken.Token
             };
         }
+
+        public async Task RevokeTokenAsync(string token, string ipAddress)
+        {
+            var refreshToken = await _dbContext.RefreshTokens
+                .FirstOrDefaultAsync(rt => rt.Token == token);
+
+            if (refreshToken is null)
+            {
+                _logger.LogWarning("Revoke failed. Token not found.");
+                return; 
+            }
+
+            if (refreshToken.IsRevoked)
+            {
+                _logger.LogInformation("Token already revoked for User {UserId}.", refreshToken.UserId);
+                return;
+            }
+
+            _logger.LogInformation("Revoking token for User {UserId}.", refreshToken.UserId);
+
+            refreshToken.Revoke(ipAddress, "User logout");
+
+            await _dbContext.SaveChangesAsync();
+
+            _logger.LogInformation("Token revoked successfully for User {UserId}.", refreshToken.UserId);
+        }
     }
 }

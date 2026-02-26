@@ -7,6 +7,7 @@ namespace NeuroNotes.Application.Features.Notes.Queries.GetNoteList
         UpdatedAt,
         Title,
         Status,
+        SourceType,
         Category
     }
 }

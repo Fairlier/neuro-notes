@@ -6,6 +6,7 @@ namespace NeuroNotes.Application.Features.Notes.Queries.GetNoteList
     public record GetNoteListQuery : IRequest<NoteListResponse>
     {
         public NoteStatus? Status { get; init; }
+        public NoteSourceType? SourceType { get; init; }
         public NoteCategory? Category { get; init; }
         public DateTime? CreatedFrom { get; init; }
         public DateTime? CreatedTo { get; init; }

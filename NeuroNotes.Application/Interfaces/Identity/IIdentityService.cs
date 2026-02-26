@@ -10,5 +10,7 @@ namespace NeuroNotes.Application.Interfaces.Identity
         Task<LoginUserResponse> LoginUserAsync(string email, string password, string ipAddress);
 
         Task<LoginUserResponse> RefreshTokenAsync(string token, string ipAddress);
+
+        Task RevokeTokenAsync(string token, string ipAddress);
     }
 }

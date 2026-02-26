@@ -2,6 +2,7 @@
 using Microsoft.Extensions.Options;
 using NeuroNotes.Application.Common.Options;
 using NeuroNotes.Application.Features.Auth.Commands.LoginUser;
+using NeuroNotes.Application.Features.Auth.Commands.LogoutUser;
 using NeuroNotes.Application.Features.Auth.Commands.RefreshToken;
 using NeuroNotes.Application.Features.Auth.Commands.RegisterUser;
 
@@ -84,13 +85,32 @@ namespace NeuroNotes.Api.Controllers
         }
 
         /// <summary>
-        /// Выход (удаление куки)
+        /// Выход из системы (отзыв токена и удаление cookie)
         /// </summary>
         [HttpPost("logout")]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
-        public IActionResult Logout()
+        public async Task<IActionResult> Logout()
         {
-            Response.Cookies.Delete("refreshToken"); // Не отозвал токен из бд
+            var token = Request.Cookies["refreshToken"];
+
+            if (!string.IsNullOrEmpty(token))
+            {
+                var command = new LogoutCommand
+                {
+                    Token = token,
+                    IpAddress = GetIpAddress()
+                };
+
+                await Mediator.Send(command);
+            }
+
+            Response.Cookies.Delete("refreshToken", new CookieOptions
+            {
+                HttpOnly = true,
+                SameSite = SameSiteMode.None,
+                Secure = true
+            });
+
             return NoContent();
         }
 

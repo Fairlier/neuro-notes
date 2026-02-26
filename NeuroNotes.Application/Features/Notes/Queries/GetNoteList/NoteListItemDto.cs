@@ -9,6 +9,7 @@ namespace NeuroNotes.Application.Features.Notes.Queries.GetNoteList
         public Guid Id { get; set; }
         public string Title { get; set; } = string.Empty;
         public string Status { get; set; } = string.Empty;
+        public string SourceType { get; set; } = string.Empty;
         public bool IsProcessing { get; set; }
         public string? Category { get; set; }
         public DateTime CreatedAt { get; set; }
@@ -17,8 +18,12 @@ namespace NeuroNotes.Application.Features.Notes.Queries.GetNoteList
         public void Mapping(Profile profile)
         {
             profile.CreateMap<Note, NoteListItemDto>()
-                .ForMember(dest => dest.Status, opt => opt.MapFrom(src => src.Status.ToString()))
-                .ForMember(dest => dest.Category, opt => opt.MapFrom(src => src.Category != null ? src.Category.ToString() : null));
+                .ForMember(dest => dest.Status,
+                    opt => opt.MapFrom(src => src.Status.ToString()))
+                .ForMember(dest => dest.SourceType,
+                    opt => opt.MapFrom(src => src.SourceType.ToString()))  
+                .ForMember(dest => dest.Category,
+                    opt => opt.MapFrom(src => src.Category != null ? src.Category.ToString() : null));
         }
     }
 }

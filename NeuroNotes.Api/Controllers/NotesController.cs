@@ -23,6 +23,7 @@ namespace NeuroNotes.Api.Controllers
         /// Получить список заметок пользователя с фильтрацией, поиском и сортировкой
         /// </summary>
         /// <param name="status">Фильтр по статусу (Pending, Raw, Structured, Summarized, Failed)</param>
+        /// <param name="sourceType">Фильтр по типу источника (DirectText, AudioFile)</param>
         /// <param name="category">Фильтр по категории</param>
         /// <param name="createdFrom">Дата создания от (включительно)</param>
         /// <param name="createdTo">Дата создания до (включительно)</param>
@@ -40,6 +41,7 @@ namespace NeuroNotes.Api.Controllers
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         public async Task<ActionResult<NoteListResponse>> GetAll(
             [FromQuery] NoteStatus? status = null,
+            [FromQuery] NoteSourceType? sourceType = null,  
             [FromQuery] NoteCategory? category = null,
             [FromQuery] DateTime? createdFrom = null,
             [FromQuery] DateTime? createdTo = null,
@@ -55,6 +57,7 @@ namespace NeuroNotes.Api.Controllers
             var query = new GetNoteListQuery
             {
                 Status = status,
+                SourceType = sourceType,  
                 Category = category,
                 CreatedFrom = createdFrom,
                 CreatedTo = createdTo,
