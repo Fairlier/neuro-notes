@@ -29,9 +29,9 @@ namespace NeuroNotes.Api.Controllers
         /// <param name="createdTo">Дата создания до (включительно)</param>
         /// <param name="updatedFrom">Дата обновления от (включительно)</param>
         /// <param name="updatedTo">Дата обновления до (включительно)</param>
-        /// <param name="searchTerm">Поисковый запрос по содержимому заметок</param>
-        /// <param name="searchMode">Режим поиска: Semantic (по смыслу) или Text (точное совпадение)</param>
-        /// <param name="sortBy">Поле сортировки (игнорируется при поиске - результаты по релевантности)</param>
+        /// <param name="searchTerm">Поисковый запрос (Title - по названию, Semantic - по содержимому)</param>
+        /// <param name="searchMode">Режим поиска: Title (точное совпадение в названии) или Semantic (по смыслу содержимого)</param>
+        /// <param name="sortBy">Поле сортировки (игнорируется при семантическом поиске - результаты по релевантности)</param>
         /// <param name="sortDirection">Направление сортировки</param>
         /// <param name="page">Номер страницы (по умолчанию 1)</param>
         /// <param name="pageSize">Размер страницы (по умолчанию 20, максимум 100)</param>
@@ -41,14 +41,14 @@ namespace NeuroNotes.Api.Controllers
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         public async Task<ActionResult<NoteListResponse>> GetAll(
             [FromQuery] NoteStatus? status = null,
-            [FromQuery] NoteSourceType? sourceType = null,  
+            [FromQuery] NoteSourceType? sourceType = null,
             [FromQuery] NoteCategory? category = null,
             [FromQuery] DateTime? createdFrom = null,
             [FromQuery] DateTime? createdTo = null,
             [FromQuery] DateTime? updatedFrom = null,
             [FromQuery] DateTime? updatedTo = null,
             [FromQuery] string? searchTerm = null,
-            [FromQuery] SearchMode searchMode = SearchMode.Semantic,
+            [FromQuery] SearchMode searchMode = SearchMode.Title,  
             [FromQuery] NoteSortBy sortBy = NoteSortBy.CreatedAt,
             [FromQuery] SortDirection sortDirection = SortDirection.Descending,
             [FromQuery] int page = 1,
@@ -57,7 +57,7 @@ namespace NeuroNotes.Api.Controllers
             var query = new GetNoteListQuery
             {
                 Status = status,
-                SourceType = sourceType,  
+                SourceType = sourceType,
                 Category = category,
                 CreatedFrom = createdFrom,
                 CreatedTo = createdTo,

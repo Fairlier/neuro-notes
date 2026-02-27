@@ -14,7 +14,7 @@ namespace NeuroNotes.Application.Features.Notes.Queries.GetNoteList
         public DateTime? UpdatedTo { get; init; }
 
         public string? SearchTerm { get; init; }
-        public SearchMode SearchMode { get; init; } = SearchMode.Semantic;
+        public SearchMode SearchMode { get; init; } = SearchMode.Title;
 
         public NoteSortBy SortBy { get; init; } = NoteSortBy.CreatedAt;
         public SortDirection SortDirection { get; init; } = SortDirection.Descending;

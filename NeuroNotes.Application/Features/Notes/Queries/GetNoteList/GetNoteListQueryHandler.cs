@@ -64,7 +64,7 @@ namespace NeuroNotes.Application.Features.Notes.Queries.GetNoteList
 
             var relevantNoteIds = request.SearchMode == SearchMode.Semantic
                 ? await _searchService.SemanticSearchAsync(userId, request.SearchTerm!, maxSearchResults, cancellationToken)
-                : await _searchService.TextSearchAsync(userId, request.SearchTerm!, maxSearchResults, cancellationToken);
+                : await _searchService.TextSearchByTitleAsync(userId, request.SearchTerm!, maxSearchResults, cancellationToken);
 
             if (relevantNoteIds.Count == 0)
             {

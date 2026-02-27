@@ -71,7 +71,10 @@ namespace NeuroNotes.Api.Middleware
                 default:
                     code = HttpStatusCode.InternalServerError;
                     _logger.LogError(exception, "Encounters unexpected error during request processing.");
-                    result = JsonSerializer.Serialize(new { Error = "An unexpected error occurred." });
+                    result = JsonSerializer.Serialize(new
+                    {
+                        Error = exception.Message
+                    });
                     break;
             }
 

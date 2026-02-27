@@ -107,7 +107,7 @@ namespace NeuroNotes.Infrastructure.AI.Embeddings
             }
         }
 
-        public async Task<List<Guid>> TextSearchAsync(
+        public async Task<List<Guid>> TextSearchByTitleAsync(
             string userId,
             string query,
             int limit,
@@ -119,33 +119,22 @@ namespace NeuroNotes.Infrastructure.AI.Embeddings
             }
 
             _logger.LogInformation(
-                "Performing text search for User {UserId}. Query: '{Query}', Limit: {Limit}",
+                "Performing text search by title for User {UserId}. Query: '{Query}', Limit: {Limit}",
                 userId, query, limit);
 
             var term = query.Trim().ToLower();
 
-            var userNoteIds = await _context.Notes
+            var noteIds = await _context.Notes
                 .AsNoTracking()
                 .Where(n => n.UserId == userId)
+                .Where(n => n.Title.ToLower().Contains(term))
+                .OrderByDescending(n => n.UpdatedAt ?? n.CreatedAt)
                 .Select(n => n.Id)
-                .ToListAsync(cancellationToken);
-
-            if (userNoteIds.Count == 0)
-            {
-                return new List<Guid>();
-            }
-
-            var noteIds = await _context.NoteChunks
-                .AsNoTracking()
-                .Where(c => userNoteIds.Contains(c.NoteId) &&
-                            c.Content.ToLower().Contains(term))
-                .Select(c => c.NoteId)
-                .Distinct()
                 .Take(limit)
                 .ToListAsync(cancellationToken);
 
             _logger.LogInformation(
-                "Text search completed. Found {Count} notes for User {UserId}.",
+                "Text search by title completed. Found {Count} notes for User {UserId}.",
                 noteIds.Count, userId);
 
             return noteIds;

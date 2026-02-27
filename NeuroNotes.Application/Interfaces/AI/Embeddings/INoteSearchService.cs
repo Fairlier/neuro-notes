@@ -9,7 +9,7 @@ namespace NeuroNotes.Application.Interfaces.AI.Embeddings
             int limit,
             CancellationToken cancellationToken);
 
-        Task<List<Guid>> TextSearchAsync(
+        Task<List<Guid>> TextSearchByTitleAsync(
             string userId,
             string query,
             int limit,
