@@ -23,16 +23,21 @@ namespace NeuroNotes.Infrastructure.Extensions
             {
                 new Mp3Id3(),
                 new Mp3Mpeg(),
+                
                 new Wav(),
                 new Ogg(),
                 new Flac(),
+                new Webm(),
+                
                 new M4a(),
+                new Mp4Audio(),
+                
                 new Jpeg(),
                 new Png(),
                 new Gif(),
                 new WebP()
             };
-            
+
             services.AddSingleton<IFileFormatInspector>(new FileFormatInspector(recognisedFormats));
             services.AddScoped<IFileSignatureValidator, FileSignatureValidator>();
             services.AddScoped<IMimeTypeDetector, FileSignaturesMimeTypeDetector>();

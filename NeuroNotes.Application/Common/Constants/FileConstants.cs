@@ -5,7 +5,7 @@ namespace NeuroNotes.Application.Common.Constants
     {
         public static readonly IReadOnlyList<string> SupportedAudioExtensions = new[]
         {
-            ".mp3", ".wav", ".ogg", ".m4a", ".flac"
+            ".mp3", ".wav", ".ogg", ".m4a", ".flac", ".webm", ".mp4"
         };
 
         public static readonly IReadOnlyList<string> SupportedAudioContentTypes = new[]
@@ -17,7 +17,8 @@ namespace NeuroNotes.Application.Common.Constants
             "audio/ogg",
             "audio/mp4",
             "audio/x-m4a",
-            "audio/flac"
+            "audio/flac",
+            "audio/webm"
         };
 
         private static readonly IReadOnlyDictionary<string, string> AudioExtensionToContentType = new Dictionary<string, string>
@@ -27,7 +28,8 @@ namespace NeuroNotes.Application.Common.Constants
             { ".ogg", "audio/ogg" },
             { ".m4a", "audio/mp4" },
             { ".flac", "audio/flac" },
-            { ".webm", "audio/webm" }
+            { ".webm", "audio/webm" },
+            { ".mp4", "audio/mp4" }
         };
 
         public const long MaxAudioUploadSizeBytes = 500 * 1024 * 1024;

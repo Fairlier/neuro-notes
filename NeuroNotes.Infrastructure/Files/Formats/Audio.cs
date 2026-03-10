@@ -33,8 +33,76 @@ namespace NeuroNotes.Infrastructure.Files.Formats
         public Flac() : base(new byte[] { 0x66, 0x4C, 0x61, 0x43 }, "audio/flac", "flac") { }
     }
 
-    public class M4a : Audio
+    public class Webm : Audio
     {
-        public M4a() : base(new byte[] { 0x00, 0x00, 0x00, 0x20, 0x66, 0x74, 0x79, 0x70, 0x4D, 0x34, 0x41 }, "audio/mp4", "m4a") { }
+        public Webm() : base(new byte[] { 0x1A, 0x45, 0xDF, 0xA3 }, "audio/webm", "webm") { }
+    }
+
+    public abstract class IsoBaseMediaAudio : Audio
+    {
+        private readonly string[] _compatibleBrands;
+
+        protected IsoBaseMediaAudio(string mediaType, string extension, string[] compatibleBrands)
+            : base(Array.Empty<byte>(), mediaType, extension)
+        {
+            _compatibleBrands = compatibleBrands;
+        }
+
+        public override bool IsMatch(Stream stream)
+        {
+            if (stream == null || stream.Length < 12)
+                return false;
+
+            var buffer = new byte[12];
+            var bytesRead = stream.Read(buffer, 0, 12);
+
+            if (bytesRead < 12)
+                return false;
+
+            if (buffer[4] != 0x66 || 
+                buffer[5] != 0x74 || 
+                buffer[6] != 0x79 || 
+                buffer[7] != 0x70)   
+            {
+                return false;
+            }
+
+            var brand = System.Text.Encoding.ASCII.GetString(buffer, 8, 4).TrimEnd('\0', ' ');
+
+            return _compatibleBrands.Any(b => brand.StartsWith(b, StringComparison.OrdinalIgnoreCase));
+        }
+    }
+
+    public class M4a : IsoBaseMediaAudio
+    {
+        private static readonly string[] M4aBrands = new[]
+        {
+            "M4A",  
+            "M4B",  
+            "M4P",  
+            "mp42"  
+        };
+
+        public M4a() : base("audio/mp4", "m4a", M4aBrands) { }
+    }
+
+    public class Mp4Audio : IsoBaseMediaAudio
+    {
+        private static readonly string[] Mp4Brands = new[]
+        {
+            "isom",  
+            "iso2",  
+            "mp41",  
+            "mp42",  
+            "avc1",  
+            "dash",  
+            "mmp4",  
+            "MSNV",  
+            "3gp",   
+            "3g2",   
+            "NDAS"   
+        };
+
+        public Mp4Audio() : base("audio/mp4", "mp4", Mp4Brands) { }
     }
 }
