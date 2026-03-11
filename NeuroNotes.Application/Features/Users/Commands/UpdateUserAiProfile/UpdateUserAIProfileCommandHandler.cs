@@ -158,8 +158,6 @@ namespace NeuroNotes.Application.Features.Users.Commands.UpdateUserAIProfile
         {
             if (requestValue.HasValue) return requestValue.Value;
 
-            if (Convert.ToInt32(databaseValue) != 0) return databaseValue;
-
             return defaultValue;
         }
 

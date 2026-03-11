@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using NeuroNotes.Application.Features.Users.Commands.DeleteAvatar;
+using NeuroNotes.Application.Features.Users.Commands.ResetUserAIProfile;
 using NeuroNotes.Application.Features.Users.Commands.UpdateUserAIProfile;
 using NeuroNotes.Application.Features.Users.Commands.UpdateUserProfile;
 using NeuroNotes.Application.Features.Users.Commands.UploadAvatar;
@@ -97,6 +98,18 @@ namespace NeuroNotes.Api.Controllers
         public async Task<IActionResult> UpdateAiProfile([FromBody] UpdateUserAIProfileCommand command)
         {
             await Mediator.Send(command);
+            return NoContent();
+        }
+
+        /// <summary>
+        /// Сбросить настройки ИИ профиля до заводских по умолчанию
+        /// </summary>
+        [HttpPost("ai-profile/reset")]
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        public async Task<IActionResult> ResetAiProfile()
+        {
+            await Mediator.Send(new ResetUserAIProfileCommand());
             return NoContent();
         }
     }

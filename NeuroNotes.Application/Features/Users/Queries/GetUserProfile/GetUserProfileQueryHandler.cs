@@ -49,8 +49,9 @@ namespace NeuroNotes.Application.Features.Users.Queries.GetUserProfile
 
                 return new UserProfileResponse
                 {
-                    Nickname = "User",
+                    Nickname = _defaults.DefaultNickname,
                     InterfaceLanguage = _defaults.DefaultInterfaceLanguage,
+                    Theme = _defaults.DefaultTheme,
                     AvatarUrl = null
                 };
             }
@@ -61,7 +62,11 @@ namespace NeuroNotes.Application.Features.Users.Queries.GetUserProfile
 
             var nickname = !string.IsNullOrEmpty(entity.Nickname)
                 ? entity.Nickname
-                : "User";
+                : _defaults.DefaultNickname;
+
+            var theme = !string.IsNullOrEmpty(entity.Theme)
+                ? entity.Theme
+                : _defaults.DefaultTheme;
 
             _logger.LogInformation("User profile retrieved for User {UserId}.", userId);
 
@@ -69,6 +74,7 @@ namespace NeuroNotes.Application.Features.Users.Queries.GetUserProfile
             {
                 Nickname = nickname,
                 InterfaceLanguage = language,
+                Theme = theme,
                 AvatarUrl = entity.AvatarUrl
             };
         }

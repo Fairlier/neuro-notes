@@ -54,9 +54,13 @@ namespace NeuroNotes.Application.Features.Users.Commands.UpdateUserProfile
 
                 var initNick = !string.IsNullOrWhiteSpace(request.Nickname)
                     ? request.Nickname
-                    : "User";
+                    : _defaults.DefaultNickname;
 
-                userProfile = new UserProfile(userId, initNick, initLang);
+                var initTheme = !string.IsNullOrWhiteSpace(request.Theme)
+                    ? request.Theme
+                    : _defaults.DefaultTheme;
+
+                userProfile = new UserProfile(userId, initNick, initLang, initTheme);
                 await _context.UserProfiles.AddAsync(userProfile, token);
             }
             else
@@ -69,7 +73,11 @@ namespace NeuroNotes.Application.Features.Users.Commands.UpdateUserProfile
                     ? request.InterfaceLanguage
                     : userProfile.InterfaceLanguage;
 
-                userProfile.Update(newNickname, newInterfaceLanguage);
+                var newTheme = !string.IsNullOrWhiteSpace(request.Theme)
+                    ? request.Theme
+                    : userProfile.Theme;
+
+                userProfile.Update(newNickname, newInterfaceLanguage, newTheme);
             }
 
             await _context.SaveChangesAsync(token);

@@ -13,8 +13,8 @@ using Pgvector;
 namespace NeuroNotes.Infrastructure.Persistence.Migrations
 {
     [DbContext(typeof(NeuroNotesDbContext))]
-    [Migration("20260223180701_InitialCreate")]
-    partial class InitialCreate
+    [Migration("20260311161932_AddTheme")]
+    partial class AddTheme
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -412,6 +412,10 @@ namespace NeuroNotes.Infrastructure.Persistence.Migrations
                         .HasColumnType("text");
 
                     b.Property<string>("Nickname")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("Theme")
                         .IsRequired()
                         .HasColumnType("text");
 

@@ -38,12 +38,13 @@ namespace NeuroNotes.Application.Features.Auth.Commands.RegisterUser
 
             var result = await _identityService.CreateUserAsync(request.Email, request.Password);
 
-            var defaultNickname = request.Email.Split('@')[0];
+            var nickname = request.Email.Split('@')[0];
 
             var userProfile = new UserProfile(
                 result.Id,
-                defaultNickname,
-                _appDefaults.DefaultInterfaceLanguage
+                nickname,
+                _appDefaults.DefaultInterfaceLanguage,
+                _appDefaults.DefaultTheme
             );
 
             await _context.UserProfiles.AddAsync(userProfile, cancellationToken);

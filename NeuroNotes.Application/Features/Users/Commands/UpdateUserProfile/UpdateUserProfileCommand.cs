@@ -6,5 +6,6 @@ namespace NeuroNotes.Application.Features.Users.Commands.UpdateUserProfile
     {
         public string? Nickname { get; set; }
         public string? InterfaceLanguage { get; set; }
+        public string? Theme { get; set; }
     }
 }

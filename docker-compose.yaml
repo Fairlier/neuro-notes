@@ -22,6 +22,8 @@ services:
       
       # === App Configuration ===
       - AppDefaults__DefaultInterfaceLanguage=${APP_DEFAULT_INTERFACE_LANGUAGE}
+      - AppDefaults__DefaultNickname=${APP_DEFAULT_NICKNAME}
+      - AppDefaults__DefaultTheme=${APP_DEFAULT_THEME}
 
       # === Database Connection ===
       - ConnectionStrings__DefaultConnection=Host=postgres;Port=${POSTGRES_PORT};Database=${POSTGRES_DB};Username=${POSTGRES_USER};Password=${POSTGRES_PASSWORD};

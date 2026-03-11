@@ -126,5 +126,31 @@ namespace NeuroNotes.Domain.Entities
             NoteChat = NoteChat with { TargetLanguage = targetLanguage, CustomPrompt = customPrompt, UseCustomPrompt = useCustomPrompt };
             UpdatedAt = DateTime.UtcNow;
         }
+
+        public void ResetToDefaults(
+            string aiOperationLanguage,
+            TranscriptionProviderType transProvider,
+            StructureProviderType structureProvider,
+            SummaryProviderType summaryProvider,
+            ChatProviderType globalChatProvider,
+            ChatProviderType noteChatProvider)
+        {
+            AIOperationLanguage = aiOperationLanguage;
+            TranscriptionProvider = transProvider;
+            StructureProvider = structureProvider;
+            SummaryProvider = summaryProvider;
+            GlobalChatProvider = globalChatProvider;
+            NoteChatProvider = noteChatProvider;
+
+            ProviderSettingsJson = "{}";
+
+            Transcription = AIOperationSettings.Default();
+            Structuring = AIOperationSettings.Default();
+            Summarization = AIOperationSettings.Default();
+            GlobalChat = AIOperationSettings.Default();
+            NoteChat = AIOperationSettings.Default();
+
+            UpdatedAt = DateTime.UtcNow;
+        }
     }
 }

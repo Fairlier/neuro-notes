@@ -15,6 +15,12 @@ namespace NeuroNotes.Application.Features.Users.Commands.UpdateUserProfile
                 .NotEmpty().WithMessage("Language code cannot be empty.")
                 .Length(2, 10).WithMessage("Invalid language code format (e.g. 'en', 'ru').")
                 .When(v => v.InterfaceLanguage != null);
+
+            RuleFor(v => v.Theme)
+                .NotEmpty().WithMessage("Theme cannot be empty.")
+                .MaximumLength(20).WithMessage("Theme name is too long (max 20 chars).")
+                .Must(theme => new[] { "light", "dark", "system" }.Contains(theme.ToLower())).WithMessage("Invalid theme. Allowed values: light, dark, system.")
+                .When(v => v.Theme != null);
         }
     }
 }

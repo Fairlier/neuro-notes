@@ -79,7 +79,11 @@ namespace NeuroNotes.Application.Features.Users.Commands.UploadAvatar
 
             if (userProfile is null)
             {
-                userProfile = new UserProfile(userId, "User", _defaults.DefaultInterfaceLanguage);
+                userProfile = new UserProfile(
+                    userId, 
+                    _defaults.DefaultNickname, 
+                    _defaults.DefaultInterfaceLanguage,
+                    _defaults.DefaultTheme);
                 userProfile.UpdateAvatar(avatarUrl);
                 await _context.UserProfiles.AddAsync(userProfile, cancellationToken);
             }

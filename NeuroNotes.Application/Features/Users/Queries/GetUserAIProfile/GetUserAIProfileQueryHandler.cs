@@ -107,7 +107,10 @@ namespace NeuroNotes.Application.Features.Users.Queries.GetUserAIProfile
         private T ResolveEnum<T>(T? databaseValue, T defaultValue) 
             where T : struct, Enum
         {
-            if (databaseValue.HasValue && Convert.ToInt32(databaseValue.Value) != 0) return databaseValue.Value;
+            if (databaseValue.HasValue)
+            {
+                return databaseValue.Value;
+            }
 
             return defaultValue;
         }
