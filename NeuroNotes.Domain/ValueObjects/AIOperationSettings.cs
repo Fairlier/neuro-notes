@@ -1,8 +1,8 @@
 ﻿
 namespace NeuroNotes.Domain.ValueObjects
 {
-    public record AIOperationSettings(string? TargetLanguage, string? CustomPrompt, bool UseCustomPrompt)
+    public record AIOperationSettings(string? TargetLanguage, string? CustomPrompt, bool UseCustomPrompt, bool? IsAutomatic)
     {
-        public static AIOperationSettings Default() => new(null, null, false);
+        public static AIOperationSettings Default(bool? isAutomatic = null) => new(null, null, false, isAutomatic);
     }
 }

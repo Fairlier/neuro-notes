@@ -4,7 +4,7 @@ using NeuroNotes.Domain.Entities;
 
 namespace NeuroNotes.Infrastructure.Persistence.EntityTypeConfigurations
 {
-    public class UserAiProfileConfiguration : IEntityTypeConfiguration<UserAIProfile>
+    public class UserAIProfileConfiguration : IEntityTypeConfiguration<UserAIProfile>
     {
         public void Configure(EntityTypeBuilder<UserAIProfile> builder)
         {
@@ -24,6 +24,7 @@ namespace NeuroNotes.Infrastructure.Persistence.EntityTypeConfigurations
                 owned.Property(o => o.TargetLanguage).HasMaxLength(2);
                 owned.Property(o => o.CustomPrompt).HasMaxLength(2000);
                 owned.Property(o => o.UseCustomPrompt);
+                owned.Property(o => o.IsAutomatic);
             });
 
             builder.OwnsOne(x => x.Structuring, owned =>
@@ -31,6 +32,7 @@ namespace NeuroNotes.Infrastructure.Persistence.EntityTypeConfigurations
                 owned.Property(o => o.TargetLanguage).HasMaxLength(2);
                 owned.Property(o => o.CustomPrompt).HasMaxLength(5000);
                 owned.Property(o => o.UseCustomPrompt);
+                owned.Property(o => o.IsAutomatic);
             });
 
             builder.OwnsOne(x => x.Summarization, owned =>
@@ -38,6 +40,7 @@ namespace NeuroNotes.Infrastructure.Persistence.EntityTypeConfigurations
                 owned.Property(o => o.TargetLanguage).HasMaxLength(2);
                 owned.Property(o => o.CustomPrompt).HasMaxLength(2000);
                 owned.Property(o => o.UseCustomPrompt);
+                owned.Property(o => o.IsAutomatic);
             });
 
             builder.OwnsOne(x => x.GlobalChat, owned =>
@@ -45,6 +48,7 @@ namespace NeuroNotes.Infrastructure.Persistence.EntityTypeConfigurations
                 owned.Property(o => o.TargetLanguage).HasMaxLength(2);
                 owned.Property(o => o.CustomPrompt).HasMaxLength(5000);
                 owned.Property(o => o.UseCustomPrompt);
+                owned.Property(o => o.IsAutomatic);
             });
 
             builder.OwnsOne(x => x.NoteChat, owned =>
@@ -52,6 +56,15 @@ namespace NeuroNotes.Infrastructure.Persistence.EntityTypeConfigurations
                 owned.Property(o => o.TargetLanguage).HasMaxLength(2);
                 owned.Property(o => o.CustomPrompt).HasMaxLength(5000);
                 owned.Property(o => o.UseCustomPrompt);
+                owned.Property(o => o.IsAutomatic);
+            });
+
+            builder.OwnsOne(x => x.Classification, owned =>
+            {
+                owned.Property(o => o.TargetLanguage).HasMaxLength(2);
+                owned.Property(o => o.CustomPrompt).HasMaxLength(2000);
+                owned.Property(o => o.UseCustomPrompt);
+                owned.Property(o => o.IsAutomatic);
             });
         }
     }

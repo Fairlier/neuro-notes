@@ -105,7 +105,8 @@ namespace NeuroNotes.Application.Features.Users.Commands.UpdateUserAIProfile
                 userAIProfile.UpdateTranscription(
                     request.Transcription.TargetLanguage ?? userAIProfile.Transcription.TargetLanguage,
                     request.Transcription.CustomPrompt ?? userAIProfile.Transcription.CustomPrompt,
-                    request.Transcription.UseCustomPrompt ?? userAIProfile.Transcription.UseCustomPrompt
+                    request.Transcription.UseCustomPrompt ?? userAIProfile.Transcription.UseCustomPrompt,
+                    request.Transcription.IsAutomatic ?? userAIProfile.Transcription.IsAutomatic
                 );
             }
 
@@ -114,7 +115,8 @@ namespace NeuroNotes.Application.Features.Users.Commands.UpdateUserAIProfile
                 userAIProfile.UpdateStructuring(
                     request.Structuring.TargetLanguage ?? userAIProfile.Structuring.TargetLanguage,
                     request.Structuring.CustomPrompt ?? userAIProfile.Structuring.CustomPrompt,
-                    request.Structuring.UseCustomPrompt ?? userAIProfile.Structuring.UseCustomPrompt
+                    request.Structuring.UseCustomPrompt ?? userAIProfile.Structuring.UseCustomPrompt,
+                    request.Structuring.IsAutomatic ?? userAIProfile.Structuring.IsAutomatic
                 );
             }
 
@@ -123,7 +125,8 @@ namespace NeuroNotes.Application.Features.Users.Commands.UpdateUserAIProfile
                 userAIProfile.UpdateSummarization(
                     request.Summarization.TargetLanguage ?? userAIProfile.Summarization.TargetLanguage,
                     request.Summarization.CustomPrompt ?? userAIProfile.Summarization.CustomPrompt,
-                    request.Summarization.UseCustomPrompt ?? userAIProfile.Summarization.UseCustomPrompt
+                    request.Summarization.UseCustomPrompt ?? userAIProfile.Summarization.UseCustomPrompt,
+                    request.Summarization.IsAutomatic ?? userAIProfile.Summarization.IsAutomatic
                 );
             }
 
@@ -145,6 +148,12 @@ namespace NeuroNotes.Application.Features.Users.Commands.UpdateUserAIProfile
                 );
             }
 
+            if (request.Classification is not null)
+            {
+                userAIProfile.UpdateClassification(
+                    request.Classification.IsAutomatic ?? userAIProfile.Classification.IsAutomatic
+                );
+            }
 
             await _context.SaveChangesAsync(token);
 

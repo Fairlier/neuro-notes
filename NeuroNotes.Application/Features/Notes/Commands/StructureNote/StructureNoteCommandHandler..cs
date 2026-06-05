@@ -7,6 +7,7 @@ using NeuroNotes.Application.Common.Options;
 using NeuroNotes.Application.Interfaces.AI.Embeddings;
 using NeuroNotes.Application.Interfaces.AI.Prompting;
 using NeuroNotes.Application.Interfaces.AI.Providers;
+using NeuroNotes.Application.Interfaces.BackgroundJobs;
 using NeuroNotes.Application.Interfaces.Persistence;
 using NeuroNotes.Domain.Entities;
 using NeuroNotes.Domain.Enums;
@@ -20,7 +21,8 @@ namespace NeuroNotes.Application.Features.Notes.Commands.StructureNote
         private readonly IAIProviderFactory _aiFactory;
         private readonly IPromptService _promptService;
         private readonly INoteEmbeddingGenerator _embeddingGenerator;
-        private readonly AIOptions _aiOptions; 
+        private readonly AIOptions _aiOptions;
+        private readonly IBackgroundJobService _backgroundJobService;
         private readonly ILogger<StructureNoteCommandHandler> _logger; 
 
         public StructureNoteCommandHandler(
@@ -29,6 +31,7 @@ namespace NeuroNotes.Application.Features.Notes.Commands.StructureNote
             IPromptService promptService,
             INoteEmbeddingGenerator embeddingGenerator,
             IOptions<AIOptions> aiOptions,
+            IBackgroundJobService backgroundJobService,
             ILogger<StructureNoteCommandHandler> logger)
         {
             _context = context;
@@ -36,6 +39,7 @@ namespace NeuroNotes.Application.Features.Notes.Commands.StructureNote
             _promptService = promptService;
             _embeddingGenerator = embeddingGenerator;
             _aiOptions = aiOptions.Value;
+            _backgroundJobService = backgroundJobService;
             _logger = logger;
         }
 
@@ -116,6 +120,14 @@ namespace NeuroNotes.Application.Features.Notes.Commands.StructureNote
                     "Note {NoteId} structured successfully. " +
                     "Status: {Status}, IsProcessing: {IsProcessing}",
                     note.Id, note.Status, note.IsProcessing);
+
+                if (userAIProfile?.Summarization.IsAutomatic == true)
+                {
+                    _logger.LogInformation(
+                        "Auto-summarization enabled. Enqueuing summary job for Note {NoteId}.", 
+                        note.Id);
+                    _backgroundJobService.EnqueueSummaryGeneration(note.Id);
+                }
             }
             catch (Exception ex)
             {

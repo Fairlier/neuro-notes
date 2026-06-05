@@ -4,6 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using NeuroNotes.Application.Interfaces.AI.Classification;
 using NeuroNotes.Application.Interfaces.AI.Embeddings;
+using NeuroNotes.Application.Interfaces.BackgroundJobs;
 using NeuroNotes.Application.Interfaces.Persistence;
 
 namespace NeuroNotes.Application.Features.Notes.Commands.ProcessNote
@@ -13,17 +14,20 @@ namespace NeuroNotes.Application.Features.Notes.Commands.ProcessNote
         private readonly IApplicationDbContext _context;
         private readonly INoteCategoryClassifier _categoryClassifier;
         private readonly INoteEmbeddingGenerator _embeddingGenerator;
+        private readonly IBackgroundJobService _backgroundJobService;
         private readonly ILogger<ProcessNoteCommandHandler> _logger;
 
         public ProcessNoteCommandHandler(
             IApplicationDbContext context,
             INoteCategoryClassifier categoryClassifier,
             INoteEmbeddingGenerator embeddingGenerator,
+            IBackgroundJobService backgroundJobService,
             ILogger<ProcessNoteCommandHandler> logger)
         {
             _context = context;
             _categoryClassifier = categoryClassifier;
             _embeddingGenerator = embeddingGenerator;
+            _backgroundJobService = backgroundJobService;
             _logger = logger;
         }
 
@@ -56,18 +60,32 @@ namespace NeuroNotes.Application.Features.Notes.Commands.ProcessNote
 
             try
             {
-                _logger.LogInformation(
-                    "Classifying category for Note {NoteId}...",
-                    request.NoteId);
+                var userProfile = await _context.UserAIProfiles.AsNoTracking()
+                    .FirstOrDefaultAsync(p => p.UserId == note.UserId, cancellationToken);
 
-                var (category, confidence) = await _categoryClassifier
-                    .ClassifyWithConfidenceAsync(note.RawText, cancellationToken);
+                bool autoClassify = userProfile?.Classification.IsAutomatic ?? true; 
 
-                note.SetCategory(category);
+                if (autoClassify)
+                {
+                    _logger.LogInformation(
+                        "Classifying category for Note {NoteId}...",
+                        request.NoteId);
 
-                _logger.LogInformation(
-                    "Note {NoteId} classified as {Category} (confidence: {Confidence:F4}).",
-                    request.NoteId, category, confidence);
+                    var (category, confidence) = await _categoryClassifier
+                        .ClassifyWithConfidenceAsync(note.RawText, cancellationToken);
+
+                    note.SetCategory(category);
+
+                    _logger.LogInformation(
+                        "Note {NoteId} classified as {Category} (confidence: {Confidence:F4}).",
+                        request.NoteId, category, confidence);
+                }
+                else
+                {
+                    _logger.LogInformation(
+                        "Auto-classification is disabled for User {UserId}. Skipping classification for Note {NoteId}.",
+                        note.UserId, request.NoteId);
+                }
 
                 _logger.LogInformation(
                     "Generating embeddings for Note {NoteId}...",
@@ -86,6 +104,14 @@ namespace NeuroNotes.Application.Features.Notes.Commands.ProcessNote
                 _logger.LogInformation(
                     "Note {NoteId} processed successfully. Status: {Status}",
                     request.NoteId, note.Status);
+
+                if (userProfile?.Structuring.IsAutomatic == true)
+                {
+                    _logger.LogInformation(
+                        "Auto-structuring enabled. Enqueuing structure job for Note {NoteId}.", 
+                        request.NoteId);
+                    _backgroundJobService.EnqueueStructureGeneration(note.Id);
+                }
             }
             catch (Exception ex)
             {

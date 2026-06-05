@@ -20,5 +20,7 @@ namespace NeuroNotes.Application.Features.Users.Commands.UpdateUserAIProfile
         public AIOperationSettingsDto? Summarization { get; set; }
         public AIOperationSettingsDto? GlobalChat { get; set; }
         public AIOperationSettingsDto? NoteChat { get; set; }
+
+        public AIOperationSettingsDto? Classification { get; set; }
     }
 }

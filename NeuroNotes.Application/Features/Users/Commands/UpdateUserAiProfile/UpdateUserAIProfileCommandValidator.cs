@@ -84,6 +84,17 @@ namespace NeuroNotes.Application.Features.Users.Commands.UpdateUserAIProfile
                     .MaximumLength(5000).WithMessage("Note chat prompt is too long (max 5000 chars).")
                     .When(v => v.NoteChat!.CustomPrompt != null);
             });
+
+            When(v => v.Classification != null, () =>
+            {
+                RuleFor(v => v.Classification!.TargetLanguage)
+                    .Length(2).WithMessage("Language code must be exactly 2 characters.")
+                    .When(v => v.Classification!.TargetLanguage != null);
+
+                RuleFor(v => v.Classification!.CustomPrompt)
+                    .MaximumLength(2000).WithMessage("Classification prompt is too long (max 2000 chars).")
+                    .When(v => v.Classification!.CustomPrompt != null);
+            });
         }
     }
 }

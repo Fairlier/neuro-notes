@@ -6,5 +6,6 @@ namespace NeuroNotes.Application.Features.Users.Commands.UpdateUserAIProfile
         public string? TargetLanguage { get; set; }
         public string? CustomPrompt { get; set; }
         public bool? UseCustomPrompt { get; set; }
+        public bool? IsAutomatic { get; set; }
     }
 }

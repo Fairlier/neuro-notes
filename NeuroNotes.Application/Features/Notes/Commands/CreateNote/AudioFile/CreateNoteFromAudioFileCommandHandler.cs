@@ -1,8 +1,8 @@
 ﻿
 using MediatR;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using NeuroNotes.Application.Common.Constants;
-using NeuroNotes.Application.Interfaces.AI.Embeddings;
 using NeuroNotes.Application.Interfaces.BackgroundJobs;
 using NeuroNotes.Application.Interfaces.Files;
 using NeuroNotes.Application.Interfaces.Identity;
@@ -89,11 +89,24 @@ namespace NeuroNotes.Application.Features.Notes.Commands.CreateNote.AudioFile
                 "Note {NoteId} saved to database.",
                 note.Id);
 
-            _backgroundJobService.EnqueueTranscription(note.Id);
+            var userProfile = await _context.UserAIProfiles.AsNoTracking()
+                .FirstOrDefaultAsync(p => p.UserId == userId, cancellationToken);
 
-            _logger.LogInformation(
-                "Transcription job enqueued for Note {NoteId}.",
-                note.Id);
+            bool autoTranscribe = userProfile?.Transcription.IsAutomatic ?? true; 
+
+            if (autoTranscribe)
+            {
+                _backgroundJobService.EnqueueTranscription(note.Id);
+                _logger.LogInformation(
+                    "Transcription job enqueued for Note {NoteId}.", 
+                    note.Id);
+            }
+            else
+            {
+                _logger.LogInformation(
+                    "Auto-transcription is disabled. Note {NoteId} is waiting for manual trigger.", 
+                    note.Id);
+            }
 
             return new CreateNoteResponse { Id = note.Id };
         }

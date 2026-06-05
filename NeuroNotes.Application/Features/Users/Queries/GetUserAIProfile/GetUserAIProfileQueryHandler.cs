@@ -68,6 +68,8 @@ namespace NeuroNotes.Application.Features.Users.Queries.GetUserAIProfile
                 GlobalChat = MapOperationSettings(userAIProfile?.GlobalChat),
                 NoteChat = MapOperationSettings(userAIProfile?.NoteChat),
 
+                Classification = MapOperationSettings(userAIProfile?.Classification),
+
                 ProviderSettings = new Dictionary<string, Dictionary<string, string>>()
             };
 
@@ -124,7 +126,8 @@ namespace NeuroNotes.Application.Features.Users.Queries.GetUserAIProfile
             {
                 TargetLanguage = settings.TargetLanguage,
                 CustomPrompt = settings.CustomPrompt,
-                UseCustomPrompt = settings.UseCustomPrompt
+                UseCustomPrompt = settings.UseCustomPrompt,
+                IsAutomatic = settings.IsAutomatic
             };
         }
 

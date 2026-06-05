@@ -18,11 +18,13 @@ namespace NeuroNotes.Domain.Entities
 
         public string ProviderSettingsJson { get; private set; } = "{}";
 
-        public AIOperationSettings Transcription { get; private set; } = AIOperationSettings.Default();
-        public AIOperationSettings Structuring { get; private set; } = AIOperationSettings.Default();
-        public AIOperationSettings Summarization { get; private set; } = AIOperationSettings.Default();
-        public AIOperationSettings GlobalChat { get; private set; } = AIOperationSettings.Default();
-        public AIOperationSettings NoteChat { get; private set; } = AIOperationSettings.Default();
+        public AIOperationSettings Transcription { get; private set; } = AIOperationSettings.Default(true);
+        public AIOperationSettings Structuring { get; private set; } = AIOperationSettings.Default(true);
+        public AIOperationSettings Summarization { get; private set; } = AIOperationSettings.Default(true);
+        public AIOperationSettings GlobalChat { get; private set; } = AIOperationSettings.Default(null);
+        public AIOperationSettings NoteChat { get; private set; } = AIOperationSettings.Default(null);
+
+        public AIOperationSettings Classification { get; private set; } = AIOperationSettings.Default(true);
 
         protected UserAIProfile() { }
 
@@ -97,33 +99,44 @@ namespace NeuroNotes.Domain.Entities
             }
         }
 
-        public void UpdateTranscription(string? targetLanguage, string? customPrompt, bool useCustomPrompt)
+        public void UpdateTranscription(string? targetLanguage, string? customPrompt, bool useCustomPrompt, bool? isAutomatic)
         {
-            Transcription = Transcription with { TargetLanguage = targetLanguage, CustomPrompt = customPrompt, UseCustomPrompt = useCustomPrompt };
+            Transcription = Transcription with { TargetLanguage = targetLanguage, CustomPrompt = customPrompt, 
+                UseCustomPrompt = useCustomPrompt, IsAutomatic = isAutomatic };
             UpdatedAt = DateTime.UtcNow;
         }
 
-        public void UpdateStructuring(string? targetLanguage, string? customPrompt, bool useCustomPrompt)
+        public void UpdateStructuring(string? targetLanguage, string? customPrompt, bool useCustomPrompt, bool? isAutomatic)
         {
-            Structuring = Structuring with { TargetLanguage = targetLanguage, CustomPrompt = customPrompt, UseCustomPrompt = useCustomPrompt };
+            Structuring = Structuring with { TargetLanguage = targetLanguage, CustomPrompt = customPrompt, 
+                UseCustomPrompt = useCustomPrompt, IsAutomatic = isAutomatic };
             UpdatedAt = DateTime.UtcNow;
         }
 
-        public void UpdateSummarization(string? targetLanguage, string? customPrompt, bool useCustomPrompt)
+        public void UpdateSummarization(string? targetLanguage, string? customPrompt, bool useCustomPrompt, bool? isAutomatic)
         {
-            Summarization = Summarization with { TargetLanguage = targetLanguage, CustomPrompt = customPrompt, UseCustomPrompt = useCustomPrompt };
+            Summarization = Summarization with { TargetLanguage = targetLanguage, CustomPrompt = customPrompt, 
+                UseCustomPrompt = useCustomPrompt, IsAutomatic = isAutomatic };
             UpdatedAt = DateTime.UtcNow;
         }
 
         public void UpdateGlobalChat(string? targetLanguage, string? customPrompt, bool useCustomPrompt)
         {
-            GlobalChat = GlobalChat with { TargetLanguage = targetLanguage, CustomPrompt = customPrompt, UseCustomPrompt = useCustomPrompt };
+            GlobalChat = GlobalChat with { TargetLanguage = targetLanguage, CustomPrompt = customPrompt, 
+                UseCustomPrompt = useCustomPrompt, IsAutomatic = null };
             UpdatedAt = DateTime.UtcNow;
         }
 
         public void UpdateNoteChat(string? targetLanguage, string? customPrompt, bool useCustomPrompt)
         {
-            NoteChat = NoteChat with { TargetLanguage = targetLanguage, CustomPrompt = customPrompt, UseCustomPrompt = useCustomPrompt };
+            NoteChat = NoteChat with { TargetLanguage = targetLanguage, CustomPrompt = customPrompt, 
+                UseCustomPrompt = useCustomPrompt, IsAutomatic = null };
+            UpdatedAt = DateTime.UtcNow;
+        }
+
+        public void UpdateClassification(bool? isAutomatic)
+        {
+            Classification = Classification with { IsAutomatic = isAutomatic };
             UpdatedAt = DateTime.UtcNow;
         }
 
@@ -144,11 +157,13 @@ namespace NeuroNotes.Domain.Entities
 
             ProviderSettingsJson = "{}";
 
-            Transcription = AIOperationSettings.Default();
-            Structuring = AIOperationSettings.Default();
-            Summarization = AIOperationSettings.Default();
-            GlobalChat = AIOperationSettings.Default();
-            NoteChat = AIOperationSettings.Default();
+            Transcription = AIOperationSettings.Default(true);
+            Structuring = AIOperationSettings.Default(false);
+            Summarization = AIOperationSettings.Default(false);
+            GlobalChat = AIOperationSettings.Default(null);
+            NoteChat = AIOperationSettings.Default(null);
+
+            Classification = AIOperationSettings.Default(true);
 
             UpdatedAt = DateTime.UtcNow;
         }

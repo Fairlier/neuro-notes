@@ -18,6 +18,8 @@ namespace NeuroNotes.Application.Features.Users.Queries.GetUserAIProfile
         public AIOperationSettingsResponseDto? GlobalChat { get; set; }
         public AIOperationSettingsResponseDto? NoteChat { get; set; }
 
+        public AIOperationSettingsResponseDto? Classification { get; set; }
+
         public Dictionary<string, Dictionary<string, string>> ProviderSettings { get; set; } = new();
     }
 }
