@@ -104,8 +104,11 @@ namespace NeuroNotes.Application.Features.Notes.Commands.CreateNote.AudioFile
             else
             {
                 _logger.LogInformation(
-                    "Auto-transcription is disabled. Note {NoteId} is waiting for manual trigger.", 
+                    "Auto-transcription is disabled. Note {NoteId} is waiting for manual trigger. Marking as finished.", 
                     note.Id);
+
+                note.FinishProcessing();
+                await _context.SaveChangesAsync(cancellationToken);
             }
 
             return new CreateNoteResponse { Id = note.Id };

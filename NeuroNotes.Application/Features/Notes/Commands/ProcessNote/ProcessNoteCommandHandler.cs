@@ -53,8 +53,12 @@ namespace NeuroNotes.Application.Features.Notes.Commands.ProcessNote
             if (string.IsNullOrWhiteSpace(note.RawText))
             {
                 _logger.LogWarning(
-                    "Note {NoteId} has no RawText. Skipping processing.",
+                    "Note {NoteId} has no RawText. Skipping processing and marking as finished.",
                     request.NoteId);
+
+                note.FinishProcessing();
+                await _context.SaveChangesAsync(cancellationToken);
+
                 return Unit.Value;
             }
 
