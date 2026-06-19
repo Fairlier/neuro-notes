@@ -23,5 +23,7 @@ RUN apt-get update && \
     apt-get install -y ffmpeg && \
     rm -rf /var/lib/apt/lists/*
 
+COPY NeuroNotes.Infrastructure/Resources/Models/CategoryClassifier /app/models/category
+
 COPY --from=publish /app/publish .
 ENTRYPOINT ["dotnet", "NeuroNotes.Api.dll"]
