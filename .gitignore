@@ -369,3 +369,5 @@ FodyWeavers.xsd
 !NeuroNotes.Infrastructure/Resources/Models/CategoryClassifier/.gitkeep
 
 .env
+.env.*
+!.env.example
