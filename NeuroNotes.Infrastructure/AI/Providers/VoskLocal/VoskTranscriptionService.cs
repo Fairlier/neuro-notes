@@ -74,14 +74,25 @@ namespace NeuroNotes.Infrastructure.AI.Providers.VoskLocal
 
             using var outputStream = _streamManager.GetStream("VoskResample");
 
+            var fileExtension = Path.GetExtension(fileName);
+            if (string.IsNullOrEmpty(fileExtension)) fileExtension = ".tmp";
+            var tempInputFilePath = Path.Combine(Path.GetTempPath(), $"{Guid.NewGuid()}{fileExtension}");
+
             try
             {
                 if (audioStream.CanSeek) audioStream.Position = 0;
 
+                _logger.LogDebug("Saving stream to temp file for FFmpeg processing: {TempFile}", tempInputFilePath);
+
+                using (var fileStream = new FileStream(tempInputFilePath, FileMode.Create, FileAccess.Write, FileShare.None))
+                {
+                    await audioStream.CopyToAsync(fileStream, cancellationToken);
+                }
+
                 _logger.LogDebug("Converting audio to WAV 16kHz Mono.");
 
                 await FFMpegArguments
-                    .FromPipeInput(new StreamPipeSource(audioStream))
+                    .FromFileInput(tempInputFilePath)
                     .OutputToPipe(new StreamPipeSink(outputStream), options => options
                         .WithAudioSamplingRate(16000)
                         .WithAudioCodec("pcm_s16le")
@@ -132,6 +143,20 @@ namespace NeuroNotes.Infrastructure.AI.Providers.VoskLocal
             {
                 _logger.LogError(ex, "Error during Vosk processing.");
                 throw;
+            }
+            finally
+            {
+                if (File.Exists(tempInputFilePath))
+                {
+                    try
+                    {
+                        File.Delete(tempInputFilePath);
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogWarning(ex, "Failed to delete temporary audio file: {TempFile}", tempInputFilePath);
+                    }
+                }
             }
         }
 

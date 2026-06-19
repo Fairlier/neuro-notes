@@ -176,6 +176,7 @@ services:
   ollama-init:
     image: ollama/ollama:latest
     container_name: neuro-notes-ollama-init
+    profiles: ["init"]
     restart: "no"
     depends_on:
       ollama:

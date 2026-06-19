@@ -2,6 +2,6 @@
 {
     public interface ICurrentUserService
     {
-        string? UserId { get; } // TODO userId или Id?
+        string? UserId { get; } 
     }
 }
