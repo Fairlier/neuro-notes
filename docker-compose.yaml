@@ -127,7 +127,7 @@ services:
       timeout: 5s
       retries: 5
 
-# ==========================================
+  # ==========================================
   # Service: MinIO Object Storage
   # ==========================================
   minio:
@@ -151,7 +151,7 @@ services:
       timeout: 5s
       retries: 3
 
-   # ==========================================
+  # ==========================================
   # Service: Ollama 
   # ==========================================
   ollama:
@@ -170,11 +170,11 @@ services:
       timeout: 5s
       retries: 10
 
-# ==========================================
+  # ==========================================
   # Service: Ollama Init
   # ==========================================
   ollama-init:
-    image: ollama/ollama:latest
+    image: curlimages/curl:latest
     container_name: neuro-notes-ollama-init
     profiles: ["init"]
     restart: "no"
@@ -183,11 +183,20 @@ services:
         condition: service_healthy
     networks:
       - network
-    environment:
-      - OLLAMA_HOST=ollama:11434
     command: >
-      sh -c "ollama pull ${EMBEDDING_MODEL} && ollama pull ${OLLAMA_LOCAL_STRUCTURE_MODEL}"
-
+      sh -c '
+      models="${EMBEDDING_MODEL} ${OLLAMA_LOCAL_STRUCTURE_MODEL} ${OLLAMA_LOCAL_SUMMARY_MODEL} ${OLLAMA_LOCAL_GLOBAL_CHAT_MODEL} ${OLLAMA_LOCAL_NOTE_CHAT_MODEL}"
+      unique_models=$$(echo "$$models" | xargs -n1 | sort -u)
+      
+      for model in $$unique_models; do
+        echo "Downloading $$model..."
+        curl -s -X POST http://ollama:11434/api/pull -d "{\"name\": \"$$model\"}"
+        echo ""
+      done
+      
+      echo "All unique models downloaded successfully!"
+      '
+      
 # ==========================================
 # Volumes & Networks
 # ==========================================
